@@ -1,253 +1,320 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendCar - Estética Automotiva</title>
     <link rel="stylesheet" href="css/service.css">
-    <title>AgendCar</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <nav class="nav-bar">
-        <div class="container">
-            <div class="nav-content">
-                <a href="#" class="nav-logo">AgendCar</a>
-                <div class="nav-links">
-                    <a href="#" class="nav-link">Início</a>
-                    <a href="car.html" class="nav-link" id="registerVehicleLink">Cadastrar Veículo</a> <a class="nav-link" id="profileLink" href="#">Perfil</a>
-                </div>
+    <!-- Navegação -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-car"></i>
+                <span>AgendCar</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link">Início</a>
+                <a href="#services" class="nav-link">Serviços</a>
+                <a href="#about" class="nav-link">Sobre</a>
+                <a href="#contact" class="nav-link">Contato</a>
+                <button class="nav-profile-btn" id="profileBtn">
+                    <i class="fas fa-user"></i>
+                   Perfil
+                </button>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
     </nav>
 
-    <div id="sidebar" class="sidebar">
-        <button id="closeSidebar" class="close-btn">&times;</button>
-        <div class="profile-content">
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Cuidamos do seu veículo com excelência</h1>
+            <p>Serviços profissionais de estética automotiva com qualidade garantida</p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <i class="fas fa-star"></i>
+                    <span>+1000 clientes satisfeitos</span>
                 </div>
-                <h2>Meu Perfil</h2>
-            </div>
-
-            <div class="profile-info">
-                <button class="edit-profile-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                </button>
-                <p>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <strong>Nome:</strong> <span id="userName">João da Silva</span>
-                </p>
-                <p>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 2L11 13"></path>
-                        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-                    </svg>
-                    <strong>Email:</strong> <span id="userEmail">joao@email.com</span>
-                </p>
-                <p>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                    </svg>
-                    <strong>Telefone:</strong> <span id="userPhone">(11) 99999-9999</span>
-                </p>
-            </div>
-
-            <div class="appointments-section">
-                <h3>Meus Agendamentos</h3>
-                <div id="appointmentsList">
-                    </div>
-            </div>
-
-            <div class="vehicles-section">
-                <h3>Meus Veículos</h3>
-                <div id="vehiclesList">
-                    </div>
-            </div>
-
-            <button id="logoutBtn" class="logout-btn">Desconectar</button>
-        </div>
-    </div>
-
-    <div id="editProfileModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close">&times;</button>
-            <h2>Editar Perfil</h2>
-            <form id="editProfileForm">
-                <div class="form-group">
-                    <label for="editName">Nome</label>
-                    <input type="text" id="editName" required>
-                </div>
-                <div class="form-group">
-                    <label for="editEmail">Email</label>
-                    <input type="email" id="editEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="editPhone">Telefone</label>
-                    <input type="tel" id="editPhone" required>
-                </div>
-                <button type="submit" class="save-btn">Salvar Alterações</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="editVehicleModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close">&times;</button>
-            <h2>Editar Veículo</h2>
-            <form id="editVehicleForm">
-                <input type="hidden" id="editVehicleIndex">
-                <div class="form-group">
-                    <label for="editPlaca">Placa</label>
-                    <input type="text" id="editPlaca" required pattern="[A-Za-z]{3}[0-9][A-Za-z0-9][0-9]{2}" maxlength="7">
-                </div>
-                <div class="form-group">
-                    <label for="editMarca">Marca</label>
-                    <input type="text" id="editMarca" required>
-                </div>
-                <div class="form-group">
-                    <label for="editModelo">Modelo</label>
-                    <input type="text" id="editModelo" required>
-                </div>
-                <div class="form-group">
-                    <label for="editTipo">Tipo</label>
-                    <select id="editTipo" required>
-                        <option value="Hatch">Hatch</option>
-                        <option value="Sedan">Sedan</option>
-                        <option value="SUV">SUV</option>
-                        <option value="Pickup">Pickup</option>
-                        <option value="Van">Van</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="editCor">Cor</label>
-                    <input type="text" id="editCor" required>
-                </div>
-                <button type="submit" class="save-btn">Salvar Alterações</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="bookingModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" id="closeBookingModal">&times;</button>
-            <h2 id="bookingTitle">Agendar Serviço</h2>
-            <form id="bookingForm" class="booking-form">
-                <div class="form-group">
-                    <label for="customerName">Nome Completo</label>
-                    <input type="text" id="customerName" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="customerPhone">Telefone</label>
-                    <input type="tel" id="customerPhone" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="vehicleSelect">Selecione o Veículo</label>
-                    <select id="vehicleSelect" required>
-                        <option value="">Selecione um veículo</option>
-                    </select>
-                </div>
-
-                <div class="date-time-section">
-                    <div class="form-group">
-                        <label for="bookingDate">Data</label>
-                        <input type="date" id="bookingDate" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Horários Disponíveis</label>
-                        <div class="time-slots" id="timeSlots">
-                            </div>
-                    </div>
-                </div>
-
-                <div class="booking-summary" id="bookingSummary" style="display: none;">
-                    <h4>Resumo do Agendamento</h4>
-                    <p><strong>Serviço:</strong> <span id="summaryService"></span></p>
-                    <p><strong>Data:</strong> <span id="summaryDate"></span></p>
-                    <p><strong>Horário:</strong> <span id="summaryTime"></span></p>
-                    <p><strong>Veículo:</strong> <span id="summaryVehicle"></span></p>
-                    <p><strong>Preço:</strong> <span id="summaryPrice"></span></p>
-                    <p><strong>Duração:</strong> <span id="summaryDuration"></span></p>
-                </div>
-
-                <button type="submit" class="save-btn">Confirmar Agendamento</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="hero">
-        <div class="hero-overlay">
-            <div class="container">
-                <div class="hero-content">
-                    <h1>Serviços de Estética Automotiva</h1>
-                    <p class="subtitle">Cuidamos do seu veículo com excelência e profissionalismo</p>
-                    <div class="feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-star">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                        <span>Mais de 1000 clientes satisfeitos</span>
-                    </div>
-                    <div class="feature">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-timer">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        <span>Atendimento rápido e profissional</span>
-                    </div>
+                <div class="stat">
+                    <i class="fas fa-clock"></i>
+                    <span>Atendimento rápido e eficiente</span>
                 </div>
             </div>
+            <button class="cta-button" onclick="document.getElementById('services').scrollIntoView({behavior: 'smooth'})">
+                Ver Serviços
+            </button>
         </div>
-    </div>
+        <div class="hero-image">
+            <img src="img/carro.lavacao.jpg" alt="car">
+        </div>
+    </section>
 
-    <div class="services">
+    <!-- Services Section -->
+    <section id="services" class="services">
         <div class="container">
-            <div class="services-header">
+            <div class="section-header">
                 <h2>Nossos Serviços</h2>
                 <p>Escolha o serviço ideal para o seu veículo</p>
             </div>
-            
-            <div class="services-carousel">
-                <div class="services-container" id="servicesContainer">
+            <div class="services-grid" id="servicesGrid">
+                <!-- Services will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Por que escolher a AgendCar?</h2>
+                    <div class="features">
+                        <div class="feature">
+                            <i class="fas fa-award"></i>
+                            <div>
+                                <h3>Qualidade Garantida</h3>
+                                <p>Produtos premium e técnicas profissionais</p>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Agendamento Online</h3>
+                                <p>Agende seu horário de forma rápida e fácil</p>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <h3>100% Seguro</h3>
+                                <p>Seu veículo estará em mãos experientes</p>
+                            </div>
+                        </div>
                     </div>
-                
-                <button class="carousel-nav carousel-prev" id="prevBtn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
-                
-                <button class="carousel-nav carousel-next" id="nextBtn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Profile Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Meu Perfil</h3>
+            <button class="close-btn" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-details">
+                    <h4 id="userName">João da Silva</h4>
+                    <p id="userEmail">joao@email.com</p>
+                    <p id="userPhone">(11) 99999-9999</p>
+                </div>
+                <button class="edit-btn" id="editProfileBtn">
+                    <i class="fas fa-edit"></i>
                 </button>
             </div>
             
-            <div class="carousel-indicators" id="carouselIndicators">
+            <div class="sidebar-section">
+                <h4>
+                    Meus Agendamentos
+                    <button class="history-btn" onclick="showHistory()">Histórico</button>
+                </h4>
+                <div id="appointmentsList">
+                    <!-- Appointments will be populated by JavaScript -->
                 </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4>Meus Veículos</h4>
+                <div id="vehiclesList">
+                    <!-- Vehicles will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        <button class="logout-btn" id="logoutBtn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            Sair
+        </button>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agendar Serviço</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="bookingForm" class="booking-form">
+                <div class="form-step active" id="step1">
+                    <h3>Selecione o Veículo</h3>
+                    <div class="form-group">
+                        <label for="vehicleSelect">
+                            <i class="fas fa-car"></i>
+                            Veículo
+                        </label>
+                        <select id="vehicleSelect" required>
+                            <option value="">Selecione um veículo</option>
+                        </select>
+                    </div>
+                    <div class="vehicle-register">
+                        <p>Não tem veículo cadastrado?</p>
+                        <button type="button" class="link-btn" onclick="showVehicleForm()">
+                            Cadastrar novo veículo
+                        </button>
+                    </div>
+                    
+                    <div class="vehicle-form" id="vehicleForm" style="display: none;">
+                        <div class="form-group">
+                            <label for="vehiclePlate">Placa (ABC1234 ou ABC1D23)</label>
+                            <input type="text" id="vehiclePlate" maxlength="7" placeholder="ABC1234" style="text-transform: uppercase;">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vehicleBrand">Marca</label>
+                                <select id="vehicleBrand">
+                                    <option value="">Selecione a marca</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleModel">Modelo</label>
+                                <input type="text" id="vehicleModel">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vehicleType">Tipo</label>
+                                <select id="vehicleType">
+                                    <option value="">Selecione</option>
+                                    <option value="Hatch">Hatch</option>
+                                    <option value="Sedan">Sedan</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Pickup">Pickup</option>
+                                    <option value="Van">Van</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleColor">Cor</label>
+                                <input type="text" id="vehicleColor">
+                            </div>
+                        </div>
+                        <button type="button" class="save-vehicle-btn" onclick="saveVehicle()">
+                            <i class="fas fa-plus"></i>
+                            Adicionar Veículo
+                        </button>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="next-btn" onclick="nextStep(2)">
+                            Próximo
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-step" id="step2">
+                    <h3>Data e Horário</h3>
+                    <div class="form-group">
+                        <label for="bookingDate">
+                            <i class="fas fa-calendar"></i>
+                            Data
+                        </label>
+                        <input type="date" id="bookingDate" required>
+                    </div>
+                    <div class="time-selection">
+                        <label>Horários Disponíveis</label>
+                        <div class="time-slots" id="timeSlots">
+                            <!-- Time slots will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="prev-btn" onclick="nextStep(1)">
+                            <i class="fas fa-arrow-left"></i>
+                            Anterior
+                        </button>
+                        <button type="button" class="next-btn" onclick="nextStep(3)">
+                            Próximo
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-step" id="step3">
+                    <h3>Confirmação</h3>
+                    <div class="booking-summary">
+                        <div class="summary-card">
+                            <h4>Resumo do Agendamento</h4>
+                            <div class="summary-item">
+                                <span class="label">Serviço:</span>
+                                <span class="value" id="summaryService">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Data:</span>
+                                <span class="value" id="summaryDate">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Horário:</span>
+                                <span class="value" id="summaryTime">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Veículo:</span>
+                                <span class="value" id="summaryVehicle">-</span>
+                            </div>
+                            <div class="summary-item total">
+                                <span class="label">Total:</span>
+                                <span class="value" id="summaryPrice">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="prev-btn" onclick="nextStep(2)">
+                            <i class="fas fa-arrow-left"></i>
+                            Anterior
+                        </button>
+                        <button type="submit" class="confirm-btn">
+                            <i class="fas fa-check"></i>
+                            Confirmar Agendamento
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
-    <div class="cta">
-        <div class="container">
-            <h2>Agende seu horário hoje mesmo!</h2>
-            <p>Oferecemos os melhores serviços de estética automotiva da região</p>
-            <button class="btn btn-white" onclick="window.location.href='#services'">Ver Serviços</button>
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Histórico de Agendamentos</h2>
+                <button class="modal-close" onclick="closeHistory()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="booking-form">
+                <div id="historyList">
+                    <!-- History will be populated by JavaScript -->
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay d-none">
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
         <div class="loader">
             <span></span>
             <span></span>

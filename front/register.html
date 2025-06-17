@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/register.css">
-    <title>AgendCar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"> <title>AgendCar - Login & Cadastro</title>
 </head>
 <body>
     <div class="container">
@@ -16,22 +16,18 @@
             <div class="Second-column">
                 <H2 class="title title-second">Crie Sua conta</H2>
                 <p class="description description-second">Insira os seus dados abaixo</p>
-                <form class="form">
-                    <label class="label-input" for="">
+                <form id="registerForm" class="form"> <label class="label-input" for="registerName">
                         <i class="fa-solid fa-user icon-modify"></i>
-                        <input type="text" placeholder="Nome">
-                    </label>
-                    <label class="label-input" for="">
+                        <input type="text" id="registerName" placeholder="Nome" required> </label>
+                    <label class="label-input" for="registerEmail">
                         <i class="fa-solid fa-envelope icon-modify"></i>
-                        <input type="Email" placeholder="Digite seu email">
-                    </label>
-                    <label class="label-input" for="">
+                        <input type="email" id="registerEmail" placeholder="Digite seu email" required> </label>
+                    <label class="label-input" for="registerPassword">
                         <i class="fa-solid fa-lock icon-modify"></i>
-                        <input type="Senha" placeholder="Digite sua senha">
-                    </label>
-                    <button class="btn btn-second">Registrar</button>
+                        <input type="password" id="registerPassword" placeholder="Digite sua senha" required> </label>
+                    <button type="submit" class="btn btn-second">Registrar</button>
                 </form>
-            </div>
+                <div id="registerErrorMessage" class="message-info error-message d-none"></div> </div>
         </div>
         <div class="content second-content"> <div class="First-column"> 
                 <h2 class="title title-primary">Olá, amigo!</h2>
@@ -41,18 +37,15 @@
             <div class="Second-column">
                 <H2 class="title title-second">Faça seu login</H2>
                 <p class="description description-second">Insira os seus dados abaixo</p>
-                <form class="form">
-                    <label class="label-input" for="">
+                <form id="loginForm" class="form"> <label class="label-input" for="loginEmail">
                         <i class="fa-solid fa-envelope icon-modify"></i>
-                        <input type="Email" placeholder="Digite seu email">
-                    </label>
-                    <label class="label-input" for="">
+                        <input type="email" id="loginEmail" placeholder="Digite seu email" required> </label>
+                    <label class="label-input" for="loginPassword">
                         <i class="fa-solid fa-lock icon-modify"></i>
-                        <input type="Senha" placeholder="Digite sua senha">
-                    </label>
-                    <button id="enter-btn" class="btn btn-second">Entrar</button>
+                        <input type="password" id="loginPassword" placeholder="Digite sua senha" required> </label>
+                    <button type="submit" class="btn btn-second">Entrar</button>
                 </form>
-                <a href="admlogin.html" id="adminLoginLink" class="login-link-return">É um administrador? Faça seu login aqui!</a>
+                <div id="loginErrorMessage" class="message-info error-message d-none"></div> <a href="admlogin.html" id="adminLoginLink" class="login-link-return">É um administrador? Faça seu login aqui!</a>
             </div>
         </div>
     </div>
