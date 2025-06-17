@@ -8,7 +8,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navegação -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
@@ -33,7 +32,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
             <h1>Cuidamos do seu veículo com excelência</h1>
@@ -57,7 +55,6 @@
         </div>
     </section>
 
-    <!-- Services Section -->
     <section id="services" class="services">
         <div class="container">
             <div class="section-header">
@@ -65,12 +62,10 @@
                 <p>Escolha o serviço ideal para o seu veículo</p>
             </div>
             <div class="services-grid" id="servicesGrid">
-                <!-- Services will be populated by JavaScript -->
-            </div>
+                </div>
         </div>
     </section>
 
-    <!-- About Section -->
     <section id="about" class="about">
         <div class="container">
             <div class="about-content">
@@ -104,7 +99,6 @@
         </div>
     </section>
 
-    <!-- Profile Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3>Meu Perfil</h3>
@@ -122,7 +116,7 @@
                     <p id="userEmail">joao@email.com</p>
                     <p id="userPhone">(11) 99999-9999</p>
                 </div>
-                <button class="edit-btn" id="editProfileBtn">
+                <button class="edit-btn" id="editProfileBtn" onclick="openProfileEditModal()">
                     <i class="fas fa-edit"></i>
                 </button>
             </div>
@@ -133,15 +127,13 @@
                     <button class="history-btn" onclick="showHistory()">Histórico</button>
                 </h4>
                 <div id="appointmentsList">
-                    <!-- Appointments will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
             
             <div class="sidebar-section">
                 <h4>Meus Veículos</h4>
                 <div id="vehiclesList">
-                    <!-- Vehicles will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
         </div>
         <button class="logout-btn" id="logoutBtn" onclick="logout()">
@@ -150,7 +142,35 @@
         </button>
     </div>
 
-    <!-- Booking Modal -->
+    <div class="modal" id="profileEditModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Perfil</h2>
+                <button class="modal-close" id="closeProfileEditModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="profileEditForm" class="booking-form">
+                <input type="hidden" id="profileUserId">
+                <div class="form-group">
+                    <label for="editProfileName">Nome</label>
+                    <input type="text" id="editProfileName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProfileEmail">Email</label>
+                    <input type="email" id="editProfileEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProfilePhone">Telefone</label>
+                    <input type="tel" id="editProfilePhone">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="confirm-btn">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="modal" id="bookingModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -180,6 +200,7 @@
                     </div>
                     
                     <div class="vehicle-form" id="vehicleForm" style="display: none;">
+                        <input type="hidden" id="vehicleIdToEdit">
                         <div class="form-group">
                             <label for="vehiclePlate">Placa (ABC1234 ou ABC1D23)</label>
                             <input type="text" id="vehiclePlate" maxlength="7" placeholder="ABC1234" style="text-transform: uppercase;">
@@ -239,8 +260,7 @@
                     <div class="time-selection">
                         <label>Horários Disponíveis</label>
                         <div class="time-slots" id="timeSlots">
-                            <!-- Time slots will be populated by JavaScript -->
-                        </div>
+                            </div>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="prev-btn" onclick="nextStep(1)">
@@ -296,7 +316,6 @@
         </div>
     </div>
 
-    <!-- History Modal -->
     <div class="modal" id="historyModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -307,13 +326,11 @@
             </div>
             <div class="booking-form">
                 <div id="historyList">
-                    <!-- History will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div class="loading-overlay d-none" id="loadingOverlay">
         <div class="loader">
             <span></span>

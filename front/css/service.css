@@ -1011,6 +1011,24 @@ body {
     padding: 20px;
 }
 
+.delete-vehicle-btn {
+    position: absolute;
+    top: 10px;
+    right: 45px; /* Adjust right position to be next to edit button */
+    background: #dc3545; /* Red color for delete */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.delete-vehicle-btn:hover {
+    background: #c82333; /* Darker red on hover */
+}
+
 /* Plate validation styling */
 .form-group input[id="vehiclePlate"] {
     font-family: monospace;

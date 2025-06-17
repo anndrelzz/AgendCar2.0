@@ -3,16 +3,15 @@ let currentStep = 1;
 let selectedTimeSlot = null;
 let vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
 let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
-let currentSlide = 0; // Não usado neste contexto, pode ser removido se não houver slides.
-let appointmentCounter = 1; // Não usado neste contexto, pode ser removido se não houver um contador global.
 
 // Carrega o status de login e as informações do usuário
 let isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
 let userName = localStorage.getItem('userName') || 'Convidado';
-let userEmail = localStorage.getItem('userEmail') || ''; // Novo: carrega o email do usuário
+let userEmail = localStorage.getItem('userEmail') || '';
+let userPhone = localStorage.getItem('userPhone') || ''; // Novo: carrega o telefone do usuário
+let currentUserId = JSON.parse(localStorage.getItem('currentUser'))?.id || null;
 
 // Brazilian car brands
-
 const brazilianCarBrands = [
     'Chevrolet', 'Volkswagen', 'Ford', 'Fiat', 'Toyota', 'Honda', 'Hyundai',
     'Nissan', 'Renault', 'Peugeot', 'Citroën', 'Jeep', 'Kia', 'Mitsubishi',
@@ -95,16 +94,15 @@ function validateBrazilianPlate(plate) {
     return oldPlateRegex.test(plate) || mercosulPlateRegex.test(plate);
 }
 
-// Check if user is logged in (Função atualizada para usar a variável global)
+// Check if user is logged in
 function checkUserLogin() {
-    return isUserLoggedIn;
+    return localStorage.getItem('userLoggedIn') === 'true';
 }
 
-// Redirect to login (Adicionado parâmetro de redirecionamento)
+// Redirect to login
 function redirectToLogin() {
     showLoading();
     setTimeout(() => {
-        // Redireciona para register.html, passando a URL atual como parâmetro de retorno
         window.location.href = `register.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
     }, 1500);
 }
@@ -137,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
     populateVehicleSelect();
     populateBrandSelect();
     setMinDate();
-    updateProfileButton(); // Novo: Atualiza o botão de perfil na navbar
+    updateProfileButton();
 });
 
 // Setup Event Listeners
@@ -145,7 +143,6 @@ function setupEventListeners() {
     // Navigation
     const hamburger = document.getElementById('hamburger');
     const profileBtn = document.getElementById('profileBtn');
-    const editProfileBtn = document.querySelector('.edit-profile-btn');
     const closeSidebar = document.getElementById('closeSidebar');
     const closeModal = document.getElementById('closeModal');
     const bookingForm = document.getElementById('bookingForm');
@@ -159,6 +156,11 @@ function setupEventListeners() {
     // Date change
     document.getElementById('bookingDate')?.addEventListener('change', generateTimeSlots);
 
+    // Profile Edit Modal
+    document.getElementById('closeProfileEditModal')?.addEventListener('click', closeProfileEditModal);
+    document.getElementById('profileEditForm')?.addEventListener('submit', saveProfile);
+    document.getElementById('editProfileBtn')?.addEventListener('click', openProfileEditModal); // Ensure this is hooked up
+
     // Outside clicks
     document.getElementById('bookingModal')?.addEventListener('click', (e) => {
         if (e.target.id === 'bookingModal') closeBookingModal();
@@ -169,11 +171,13 @@ function setupEventListeners() {
         if (e.target.id === 'sidebar') toggleSidebar();
     });
 
+    document.getElementById('profileEditModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'profileEditModal') closeProfileEditModal();
+    });
+
     // Event listeners para os botões do formulário modal (prev, next, confirm)
-    document.getElementById('prevStep1')?.addEventListener('click', () => nextStep(1));
-    document.getElementById('nextStep1')?.addEventListener('click', () => nextStep(2));
-    document.getElementById('prevStep2')?.addEventListener('click', () => nextStep(2));
-    document.getElementById('nextStep2')?.addEventListener('click', () => nextStep(3));
+    // Esses listeners precisam ser mais robustos se os botões são dinâmicos ou não têm IDs únicos.
+    // O sistema de `onclick` direto no HTML já cuida disso, então não duplica aqui.
 }
 
 // Mobile Menu Toggle
@@ -197,6 +201,75 @@ function updateProfileButton() {
         } else {
             profileBtn.innerHTML = `<i class="fas fa-user"></i> Perfil`;
         }
+    }
+}
+
+// Open Profile Edit Modal
+function openProfileEditModal() {
+    if (!checkUserLogin()) {
+        redirectToLogin();
+        return;
+    }
+
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (currentUser) {
+        document.getElementById('profileUserId').value = currentUser.id;
+        document.getElementById('editProfileName').value = currentUser.name;
+        document.getElementById('editProfileEmail').value = currentUser.email;
+        document.getElementById('editProfilePhone').value = currentUser.phone;
+        
+        document.getElementById('profileEditModal')?.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    } else {
+        showToast('Nenhum usuário logado para editar.', 'error');
+        redirectToLogin();
+    }
+}
+
+// Close Profile Edit Modal
+function closeProfileEditModal() {
+    document.getElementById('profileEditModal')?.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Save Profile Changes
+function saveProfile(e) {
+    e.preventDefault();
+
+    const userId = document.getElementById('profileUserId').value;
+    const newName = document.getElementById('editProfileName').value.trim();
+    const newEmail = document.getElementById('editProfileEmail').value.trim();
+    const newPhone = document.getElementById('editProfilePhone').value.trim();
+
+    if (!newName || !newEmail) {
+        showToast('Nome e Email são obrigatórios.', 'error');
+        return;
+    }
+
+    let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+    const userIndex = registeredUsers.findIndex(u => u.id == userId);
+
+    if (userIndex !== -1) {
+        registeredUsers[userIndex].name = newName;
+        registeredUsers[userIndex].email = newEmail;
+        registeredUsers[userIndex].phone = newPhone;
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
+        localStorage.setItem('userName', newName);
+        localStorage.setItem('userEmail', newEmail);
+        localStorage.setItem('userPhone', newPhone);
+        localStorage.setItem('currentUser', JSON.stringify(registeredUsers[userIndex]));
+
+        userName = newName;
+        userEmail = newEmail;
+        userPhone = newPhone;
+
+        showToast('Perfil atualizado com sucesso!', 'success');
+        loadUserData(); // Reload profile info in sidebar
+        updateProfileButton(); // Update navbar button
+        closeProfileEditModal();
+    } else {
+        showToast('Erro: Usuário não encontrado para atualização.', 'error');
     }
 }
 
@@ -271,6 +344,7 @@ function resetForm() {
         document.querySelectorAll('#vehicleForm input, #vehicleForm select').forEach(input => {
             input.value = '';
         });
+        document.getElementById('vehicleIdToEdit').value = ''; // Clear the hidden ID
     }
 
     // Garante que o select de veículos seja populado novamente
@@ -279,8 +353,11 @@ function resetForm() {
 
 // Navigate Steps
 function nextStep(step) {
-    if (step === 2 && !validateStep(1)) return;
-    if (step === 3 && !validateStep(2)) return;
+    // Adiciona validação antes de avançar para o próximo passo
+    if (step > currentStep) { // Apenas valida se estiver avançando de passo
+        if (currentStep === 1 && !validateStep(1)) return;
+        if (currentStep === 2 && !validateStep(2)) return;
+    }
 
     // Esconde todos os passos
     document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
@@ -300,7 +377,8 @@ function validateStep(step) {
         case 1:
             // Valida o veículo selecionado ou cadastrado
             const vehicleSelect = document.getElementById('vehicleSelect');
-            const isVehicleFormVisible = document.getElementById('vehicleForm')?.style.display === 'block';
+            const vehicleForm = document.getElementById('vehicleForm');
+            const isVehicleFormVisible = vehicleForm?.style.display === 'block';
 
             if (vehicleSelect.value === "" && !isVehicleFormVisible) {
                 showToast('Por favor, selecione um veículo existente ou cadastre um novo.', 'error');
@@ -315,18 +393,14 @@ function validateStep(step) {
                 const color = document.getElementById('vehicleColor')?.value?.trim();
 
                 if (!plate || !brand || !model || !type || !color) {
-                    showToast('Por favor, preencha todos os campos do novo veículo.', 'error');
+                    showToast('Por favor, preencha todos os campos do veículo.', 'error');
                     return false;
                 }
                 if (!validateBrazilianPlate(plate)) {
                     showToast('Por favor, insira uma placa brasileira válida (formato ABC1234 ou ABC1D23).', 'error');
                     return false;
                 }
-                // Se o formulário do veículo estiver visível e válido, saveVehicle() deve ser chamado antes de prosseguir
-                // No entanto, a lógica de saveVehicle() já mostra o toast e adiciona, então podemos só validar aqui
             }
-
-            // Se o veículo já foi selecionado, ou o novo veículo é válido
             return true;
 
         case 2:
@@ -352,6 +426,11 @@ function showVehicleForm() {
         // Se o formulário de cadastro de veículo for exibido, deseleciona o veículo existente
         if (!isVisible) {
             vehicleSelect.value = ""; // Deseleciona qualquer veículo selecionado
+            // Clear vehicle form fields when switching to 'add new'
+            document.querySelectorAll('#vehicleForm input, #vehicleForm select').forEach(input => {
+                input.value = '';
+            });
+            document.getElementById('vehicleIdToEdit').value = ''; // Clear the hidden ID
         }
     }
 }
@@ -365,13 +444,14 @@ function populateBrandSelect() {
         brazilianCarBrands.map(brand => `<option value="${brand}">${brand}</option>`).join('');
 }
 
-// Save Vehicle
+// Save Vehicle (updated to handle both add and edit)
 function saveVehicle() {
     const plate = document.getElementById('vehiclePlate')?.value?.trim();
     const brand = document.getElementById('vehicleBrand')?.value;
     const model = document.getElementById('vehicleModel')?.value?.trim();
     const type = document.getElementById('vehicleType')?.value;
     const color = document.getElementById('vehicleColor')?.value?.trim();
+    const vehicleIdToEdit = document.getElementById('vehicleIdToEdit')?.value; // Get the ID
 
     if (!plate || !brand || !model || !type || !color) {
         showToast('Por favor, preencha todos os campos do veículo para salvar.', 'error');
@@ -383,37 +463,61 @@ function saveVehicle() {
         return;
     }
 
-    // Check if plate already exists
-    const plateExists = vehicles.some(v => v.plate.toUpperCase() === plate.toUpperCase());
+    // Check if plate already exists, excluding the current vehicle if editing
+    const plateExists = vehicles.some(v => v.plate.toUpperCase() === plate.toUpperCase() && v.id != vehicleIdToEdit);
     if (plateExists) {
-        showToast('Esta placa já está cadastrada.', 'error');
+        showToast('Esta placa já está cadastrada para outro veículo.', 'error');
         return;
     }
 
-    const vehicle = {
-        id: Date.now(),
-        plate: plate.toUpperCase().replace(/\s/g, ''),
-        brand,
-        model,
-        type,
-        color
-    };
+    if (vehicleIdToEdit) {
+        // Editing existing vehicle
+        const vehicleIndex = vehicles.findIndex(v => v.id == vehicleIdToEdit);
+        if (vehicleIndex !== -1) {
+            vehicles[vehicleIndex] = {
+                id: parseInt(vehicleIdToEdit),
+                plate: plate.toUpperCase().replace(/\s/g, ''),
+                brand,
+                model,
+                type,
+                color
+            };
+            showToast('Veículo atualizado com sucesso!', 'success');
+        } else {
+            showToast('Erro: Veículo não encontrado para atualização.', 'error');
+            return;
+        }
+    } else {
+        // Adding new vehicle
+        const vehicle = {
+            id: Date.now(),
+            plate: plate.toUpperCase().replace(/\s/g, ''),
+            brand,
+            model,
+            type,
+            color
+        };
+        vehicles.push(vehicle);
+        showToast('Veículo adicionado com sucesso!', 'success');
+    }
 
-    vehicles.push(vehicle);
     localStorage.setItem('vehicles', JSON.stringify(vehicles));
-
-    populateVehicleSelect();
+    populateVehicleSelect(); // Re-populate the select dropdown
+    loadUserData(); // Reload the vehicles list in the sidebar
 
     // Clear form and hide
     document.getElementById('vehicleForm').style.display = 'none';
     document.querySelectorAll('#vehicleForm input, #vehicleForm select').forEach(input => {
         input.value = '';
     });
+    document.getElementById('vehicleIdToEdit').value = ''; // Clear the hidden ID
 
-    // Select the new vehicle
-    document.getElementById('vehicleSelect').value = vehicle.id;
-
-    showToast('Veículo adicionado com sucesso!', 'success');
+    // Select the new/updated vehicle if it was an "add" operation or if editing
+    if (!vehicleIdToEdit) {
+        document.getElementById('vehicleSelect').value = vehicles[vehicles.length - 1].id;
+    } else {
+        document.getElementById('vehicleSelect').value = vehicleIdToEdit; // Select the edited vehicle
+    }
 }
 
 // Populate Vehicle Select
@@ -439,6 +543,7 @@ function populateVehicleSelect() {
             document.querySelectorAll('#vehicleForm input, #vehicleForm select').forEach(input => {
                 input.value = '';
             });
+            document.getElementById('vehicleIdToEdit').value = ''; // Clear the hidden ID
         }
     });
 }
@@ -466,7 +571,7 @@ function generateTimeSlots() {
     selectedTimeSlot = null; // Reseta a seleção de horário ao mudar a data
 
     // Obtém o dia da semana para desabilitar domingos (0 = domingo)
-    const dayOfWeek = new Date(selectedDate).getDay();
+    const dayOfWeek = new Date(selectedDate.replace(/-/g, '\/')).getDay(); // Fix date parsing for consistency
 
     timeSlots.forEach(time => {
         const isUnavailable = isTimeSlotUnavailable(selectedDate, time) || (dayOfWeek === 0); // Desabilita domingos
@@ -567,8 +672,9 @@ function handleBookingSubmit(e) {
 // Load User Data
 function loadUserData() {
     // Atualiza informações do perfil no sidebar
-    const profileNameElem = document.getElementById('profileName');
-    const profileEmailElem = document.getElementById('profileEmail');
+    const profileNameElem = document.getElementById('userName');
+    const profileEmailElem = document.getElementById('userEmail');
+    const profilePhoneElem = document.getElementById('userPhone');
 
     if (profileNameElem) {
         profileNameElem.textContent = userName;
@@ -576,14 +682,19 @@ function loadUserData() {
     if (profileEmailElem) {
         profileEmailElem.textContent = userEmail;
     }
+    if (profilePhoneElem) {
+        profilePhoneElem.textContent = userPhone || 'Não informado';
+    }
 
     // Load appointments
     const appointmentsList = document.getElementById('appointmentsList');
     if (appointmentsList) {
-        if (appointments.length === 0) {
+        const currentUserAppointments = appointments.filter(a => a.customer.email === userEmail);
+
+        if (currentUserAppointments.length === 0) {
             appointmentsList.innerHTML = '<p class="no-data">Nenhum agendamento encontrado</p>';
         } else {
-            appointmentsList.innerHTML = appointments.map(appointment => `
+            appointmentsList.innerHTML = currentUserAppointments.map(appointment => `
                 <div class="appointment-card">
                     <h5>${appointment.service.name}</h5>
                     <p><i class="fas fa-calendar"></i> ${formatDate(appointment.date)} às ${appointment.time}</p>
@@ -613,6 +724,9 @@ function loadUserData() {
                     <button class="edit-btn" onclick="editVehicle(${vehicle.id})">
                         <i class="fas fa-edit"></i>
                     </button>
+                    <button class="delete-vehicle-btn" onclick="deleteVehicle(${vehicle.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             `).join('');
         }
@@ -621,6 +735,11 @@ function loadUserData() {
 
 // Cancel Appointment
 function cancelAppointment(appointmentId) {
+    if (!checkUserLogin()) {
+        redirectToLogin();
+        return;
+    }
+
     if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
         appointments = appointments.filter(a => a.id !== appointmentId);
         localStorage.setItem('appointments', JSON.stringify(appointments));
@@ -630,11 +749,66 @@ function cancelAppointment(appointmentId) {
     }
 }
 
-// Função para editar veículo (atualmente vazia, pode ser implementada)
+// Função para editar veículo (Implemented)
 function editVehicle(vehicleId) {
-    showToast('Funcionalidade de edição de veículo em desenvolvimento!', 'info');
-    // Implemente a lógica para carregar os dados do veículo no formulário de edição
-    // e permitir que o usuário salve as alterações.
+    if (!checkUserLogin()) {
+        redirectToLogin();
+        return;
+    }
+
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (!vehicle) {
+        showToast('Veículo não encontrado.', 'error');
+        return;
+    }
+
+    // Show the vehicle form inside the booking modal if it's hidden
+    const vehicleForm = document.getElementById('vehicleForm');
+    if (vehicleForm) {
+        vehicleForm.style.display = 'block'; // Make sure the form is visible
+    }
+
+    // Populate the form fields with vehicle data
+    document.getElementById('vehiclePlate').value = vehicle.plate;
+    document.getElementById('vehicleBrand').value = vehicle.brand;
+    document.getElementById('vehicleModel').value = vehicle.model;
+    document.getElementById('vehicleType').value = vehicle.type;
+    document.getElementById('vehicleColor').value = vehicle.color;
+    document.getElementById('vehicleIdToEdit').value = vehicle.id; // Store ID for saving changes
+
+    // Temporarily deselect any chosen vehicle from the dropdown
+    document.getElementById('vehicleSelect').value = '';
+
+    // Open the booking modal (step 1) since the vehicle form is inside it
+    const bookingModal = document.getElementById('bookingModal');
+    bookingModal?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Ensure step 1 is active and showing the vehicle form for editing
+    nextStep(1); // Go to step 1 to show the vehicle form
+    showToast('Edite as informações do veículo e salve.', 'info');
+}
+
+// Function to delete vehicle
+function deleteVehicle(vehicleId) {
+    if (!checkUserLogin()) {
+        redirectToLogin();
+        return;
+    }
+
+    if (confirm('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.')) {
+        // Remove the vehicle from the `vehicles` array
+        vehicles = vehicles.filter(v => v.id !== vehicleId);
+        localStorage.setItem('vehicles', JSON.stringify(vehicles)); // Update localStorage
+
+        // Also remove any appointments associated with this vehicle to avoid inconsistencies
+        appointments = appointments.filter(a => a.vehicle.id !== vehicleId);
+        localStorage.setItem('appointments', JSON.stringify(appointments)); // Update appointments in localStorage
+
+        loadUserData(); // Reload the vehicle list and appointments in the sidebar
+        populateVehicleSelect(); // Re-populate the vehicle select dropdown in the booking modal
+        showToast('Veículo excluído com sucesso!', 'success');
+    }
 }
 
 // Show History Modal
@@ -659,14 +833,13 @@ function loadHistoryData() {
     const historyList = document.getElementById('historyList');
     if (!historyList) return;
 
-    // Para esta demonstração, o histórico inclui todos os agendamentos confirmados.
-    // Em um cenário real, poderia ser uma lista separada de agendamentos passados/concluídos.
-    const allAppointments = [...appointments];
+    // For this demo, the history includes all confirmed appointments for the current user.
+    const userAppointmentsHistory = appointments.filter(a => a.customer.email === userEmail);
 
-    if (allAppointments.length === 0) {
+    if (userAppointmentsHistory.length === 0) {
         historyList.innerHTML = '<p class="no-data">Nenhum histórico de agendamento encontrado</p>';
     } else {
-        historyList.innerHTML = allAppointments.map(appointment => `
+        historyList.innerHTML = userAppointmentsHistory.map(appointment => `
             <div class="history-item">
                 <h5>${appointment.service.name}</h5>
                 <p><i class="fas fa-calendar"></i> ${formatDate(appointment.date)} às ${appointment.time}</p>
@@ -723,13 +896,16 @@ function logout() {
     if (confirm('Tem certeza que deseja sair?')) {
         localStorage.removeItem('userLoggedIn');
         localStorage.removeItem('userName');
-        localStorage.removeItem('userEmail'); // Novo: remove o email no logout
-        isUserLoggedIn = false; // Atualiza a variável global
-        userName = 'Convidado'; // Reseta o nome
-        userEmail = ''; // Reseta o email
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userPhone'); // Also remove phone on logout
+        localStorage.removeItem('currentUser'); // Clear current user object
+        isUserLoggedIn = false;
+        userName = 'Convidado';
+        userEmail = '';
+        userPhone = '';
         showLoading();
         setTimeout(() => {
-            window.location.href = 'register.html'; // Redireciona para a página de login/registro
+            window.location.href = 'register.html'; // Redirect to login/register page
         }, 1500);
     }
 }
