@@ -1029,6 +1029,28 @@ body {
     background: #c82333; /* Darker red on hover */
 }
 
+/* Os ajustes de service-details para alinhamento */
+.service-details {
+    display: flex;
+    justify-content: space-between; /* Mantém nas extremidades */
+    align-items: baseline; /* Alinha pela linha de base do texto */
+    margin-bottom: 1.5rem;
+}
+
+.price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0d404f;
+    flex-shrink: 0; /* Evita que o preço encolha */
+}
+
+.duration {
+    color: #64748b;
+    font-size: 0.9rem;
+    white-space: nowrap; /* Evita que "min" quebre a linha */
+    margin-left: 10px; /* Adiciona um pequeno espaço à esquerda da duração */
+}
+
 /* Plate validation styling */
 .form-group input[id="vehiclePlate"] {
     font-family: monospace;
@@ -1044,6 +1066,46 @@ body {
 .form-group input[id="vehiclePlate"]:valid {
     border-color: #27ae60;
     box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
+}
+
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 40px;
+    right: 40px;
+    background-color: #25d366; /* Cor verde do WhatsApp */
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 30px;
+    box-shadow: 2px 2px 3px #999;
+    z-index: 1000; /* Garante que o botão fique acima de outros elementos */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none; /* Remove sublinhado do link */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.whatsapp-float:hover {
+    background-color: #1DA851; /* Tom mais escuro no hover */
+    transform: scale(1.05); /* Pequeno efeito de zoom no hover */
+}
+
+.whatsapp-float i {
+    margin-top: 0; /* Ajusta o ícone para centralizar */
+}
+
+/* Media query para ajustar o tamanho e posição em telas menores */
+@media (max-width: 768px) {
+    .whatsapp-float {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+        font-size: 25px;
+    }
 }
 
 /* Responsive Design */
