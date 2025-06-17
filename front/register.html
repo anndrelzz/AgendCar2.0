@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/register.css">
+    <title>AgendCar</title>
+</head>
+<body>
+    <div class="container">
+        <div class="content first-content"> <div class="First-column"> 
+                <h2 class="title title-primary">Bem-vindo a AgendCar!</h2>
+                <p class="description description-primary">Já possui conta? Faça seu login</p>
+                <button id="signin" class="btn btn-primary">Entrar</button>
+            </div>
+            <div class="Second-column">
+                <H2 class="title title-second">Crie Sua conta</H2>
+                <p class="description description-second">Insira os seus dados abaixo</p>
+                <form class="form">
+                    <label class="label-input" for="">
+                        <i class="fa-solid fa-user icon-modify"></i>
+                        <input type="text" placeholder="Nome">
+                    </label>
+                    <label class="label-input" for="">
+                        <i class="fa-solid fa-envelope icon-modify"></i>
+                        <input type="Email" placeholder="Digite seu email">
+                    </label>
+                    <label class="label-input" for="">
+                        <i class="fa-solid fa-lock icon-modify"></i>
+                        <input type="Senha" placeholder="Digite sua senha">
+                    </label>
+                    <button class="btn btn-second">Registrar</button>
+                </form>
+            </div>
+        </div>
+        <div class="content second-content"> <div class="First-column"> 
+                <h2 class="title title-primary">Olá, amigo!</h2>
+                <p class="description description-primary">Não possui conta? Faça seu registro</p>
+                <button id="signup" class="btn btn-primary">Registrar</button>
+            </div>
+            <div class="Second-column">
+                <H2 class="title title-second">Faça seu login</H2>
+                <p class="description description-second">Insira os seus dados abaixo</p>
+                <form class="form">
+                    <label class="label-input" for="">
+                        <i class="fa-solid fa-envelope icon-modify"></i>
+                        <input type="Email" placeholder="Digite seu email">
+                    </label>
+                    <label class="label-input" for="">
+                        <i class="fa-solid fa-lock icon-modify"></i>
+                        <input type="Senha" placeholder="Digite sua senha">
+                    </label>
+                    <button id="enter-btn" class="btn btn-second">Entrar</button>
+                </form>
+                <a href="admlogin.html" id="adminLoginLink" class="login-link-return">É um administrador? Faça seu login aqui!</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="loader">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <script src="js/register.js"></script>
+</body>
+</html>

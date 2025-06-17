@@ -1,0 +1,434 @@
+:root {
+            --primary: #0d404f;
+            --primary-light: #1a5e70;
+            --primary-dark: #082830;
+            --accent: #f87060; /* Sua cor de destaque */
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --white: #ffffff;
+            --light-100: #f8f9fa;
+            --light-200: #e9ecef;
+            --light-300: #dee2e6;
+            --dark-100: #6c757d;
+            --dark-200: #495057;
+            --dark-300: #343a40;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --border-radius: 0.5rem;
+            --transition: all 0.3s ease;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Open Sans", sans-serif;
+            overflow: hidden; /* Mantém o overflow hidden para o loading overlay */
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(264deg, rgba(0,0,0,1) 0%, rgba(13,64,79,0.7371323529411764) 74%, rgba(187,194,195,1) 100%);
+        }
+
+        .content {
+            background-color:#ffff;
+            border-radius: 15px;
+            width: 960px;
+            height: 50%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+
+        .content::before{
+            content:"";
+            position: absolute;
+            background-color:var(--primary); /* Usando variável primary */
+            width: 40%;
+            height: 100%;
+            border-top-left-radius: 15px ;
+            border-bottom-left-radius: 15px;
+            left: 0;
+            transition: all 1.85s ease-in-out; /* Adicionado para a transição do slide */
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .title-primary {
+            color: var(--white); /* Usando variável white */
+        }
+
+        .title-second {
+            color: var(--primary); /* Usando variável primary */
+        }
+        
+        .description {
+            font-size: 14px;
+            font-weight: 300;
+            color: var(--white); /* Usando variável white */
+            line-height: 30px;
+        }
+
+        .description-primary {
+            color: var(--white); /* Usando variável white */
+        }
+
+        .description-second{
+            color: var(--primary); /* Usando variável primary */
+        }
+
+        .btn {
+            border-radius: 15px;
+            text-transform: uppercase;
+            color: var(--white); /* Usando variável white */
+            font-size: 10px;
+            padding: 10px 50px;
+            font-weight: bold;
+            width: 150px;
+            align-self: center;
+            align-items: center;
+            border-width: 0px;
+        }
+
+        .btn-primary {
+            background-color: transparent;
+            border: 1px solid var(--white); /* Usando variável white */
+            cursor: pointer;
+            transition: background-color 1s ;
+        }
+
+        .btn-primary:hover{
+            background-color: var(--white); /* Usando variável white */
+            color:var(--primary); /* Usando variável primary */
+        }
+
+        .btn-second {
+            background-color: #68aed2; /* Mantido se for uma cor específica para este botão */
+            color: var(--primary); /* Usando variável primary */
+            cursor: pointer;
+            transition: background-color 1s ;
+        }
+
+        .btn-second:hover {
+            background-color: var(--primary); /* Usando variável primary */
+            color: var(--white); /* Usando variável white */
+        }
+
+        .first-content {
+            display: flex;
+        }
+
+        .first-content .Second-column{
+            z-index: 2;
+        }
+
+        .First-column {
+            text-align: center;
+            width: 40%;
+            z-index: 1;
+        }
+
+        .Second-column {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form{
+            display: flex;
+            flex-direction: column;
+            width: 55%;
+        }
+
+        .form input {
+            height: 45px;
+            width: 100%;
+            border: none;
+            background-color: #ecf0f1;
+            margin: 8px;
+        }
+
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px #ecf0f1 inset !important;
+            -webkit-text-fill-color: #000 !important;
+        }
+
+        .label-input {
+            background-color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            margin: 8px;
+        }
+
+        .icon-modify {
+            color: var(--primary); /* Usando variável primary */
+            padding: 0 5px;
+        }
+
+        .second-content{
+            position: absolute;
+            display: flex; /* Garante que second-content seja visível ao trocar */
+        }
+
+        .second-content .First-column {
+            order: 2;
+            z-index: -1;
+        }
+        .second-content .Second-column {
+            order: 1;
+            z-index: -1;
+        }
+
+        /* Classes JS */
+        .sign-in-js .first-content .First-column {
+            z-index: -1;
+        }
+
+        .sign-in-js .second-content .First-column,
+        .sign-in-js .second-content .Second-column {
+            z-index: 11;
+        }
+
+        .sign-in-js .second-content .First-column {
+            z-index: 13;
+        }
+
+        .sign-in-js .content::before{
+            left: 60%;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-top-right-radius: 15px ;
+            border-bottom-right-radius: 15px;
+            animation: slidein 1.85s;
+            z-index: 12;
+        }
+
+        .sign-up-js .content::before {
+            animation: slideout 1.85s;
+            z-index: 12;
+        }
+
+        .sign-up-js .second-content .First-column,
+        .sign-up-js .second-content .Second-column {
+            z-index: -1;
+        }
+        
+        .sign-up-js .first-content .Second-column {
+            z-index: 11;
+        }
+        .sign-up-js .first-content .First-column {
+            z-index: 13;
+        }
+
+        .sign-in-js .first-content .Second-column{
+            z-index: -1;
+            position: relative;
+            animation: desloc-left 2s;
+        }
+
+        .sign-up-js .second-content .Second-column {
+            position: relative;
+            z-index: -1;
+            animation: desloc-right 2s;
+        }
+    
+        /*Animação CSS para o conteudo */
+        @keyframes desloc-left {
+            from {
+                left: 0%;
+                opacity: 1;
+                z-index: 12;
+            }
+            25% {
+                left: -80px;
+                opacity: .5;
+                z-index: 12;
+            }
+            50% {
+                left: -100px;
+                opacity: .2;
+                z-index: 12;
+            }
+            to {
+                left: -110px;
+                opacity: 0;
+                z-index: -1;
+            }
+        }
+
+        @keyframes desloc-right {
+            from {
+                left: 0;
+                z-index: 12;
+                opacity: 1;
+            }
+            25%{
+                left: 80px;
+                opacity: .5;
+            }
+            50% {
+                left: 100px;
+                opacity: .2;
+            }
+            to {
+                left: 110px;
+                z-index: -1;
+                opacity: 0;
+            }
+        }
+
+        /*Animação CSS*/
+        @keyframes slidein {
+            from{
+                left: 0;
+                width: 40%;
+            }
+            to {
+                left: 60%;
+                width: 40%;
+            }
+        }
+
+        @keyframes slideout {
+            from{
+                left: 60%;
+                width: 40%;
+            }
+            to {
+                left: 0;
+                width: 40%;
+            }
+        }
+
+        /* ESTILOS PARA O LOADER DE PÁGINA (replicados do seu exemplo anterior) */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 64, 79, 0.9); /* Usando a cor primary com transparência */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Garante que fique acima de tudo */
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.d-none {
+            opacity: 0;
+            pointer-events: none; /* Permite clicar através quando invisível */
+        }
+
+        .loader {
+            --loader: var(--accent); /* Usando a cor accent do tema AgendCar */
+            --loader-size: 30px;
+            position: relative;
+            width: 100px;
+            height: 40px;
+            overflow: hidden;
+            transition: .5s;
+            letter-spacing: 2px;
+        }
+
+        .loader span {
+            position: absolute;
+        }
+
+        .loader span:nth-child(1) {
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: var(--loader-size);
+            background: linear-gradient(90deg, transparent, var(--loader));
+            animation: loader-anim1 1s linear infinite;
+        }
+
+        @keyframes loader-anim1 {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
+
+        .loader span:nth-child(2) {
+            top: -100%;
+            right: 0;
+            width: var(--loader-size);
+            height: 100%;
+            background: linear-gradient(180deg, transparent, var(--loader));
+            animation: loader-anim2 1s linear infinite;
+            animation-delay: .25s
+        }
+
+        @keyframes loader-anim2 {
+            0% { top: -100%; }
+            50%, 100% { top: 100%; }
+        }
+
+        .loader span:nth-child(3) {
+            bottom: 0;
+            right: -100%;
+            width: 100%;
+            height: var(--loader-size);
+            background: linear-gradient(270deg, transparent, var(--loader));
+            animation: loader-anim3 1s linear infinite;
+            animation-delay: .5s
+        }
+
+        @keyframes loader-anim3 {
+            0% { right: -100%; }
+            50%, 100% { right: 100%; }
+        }
+
+        .loader span:nth-child(4) {
+            bottom: -100%;
+            left: 0;
+            width: var(--loader-size);
+            height: 100%;
+            background: linear-gradient(360deg, transparent, var(--loader));
+            animation: loader-anim4 1s linear infinite;
+            animation-delay: .75s
+        }
+
+        @keyframes loader-anim4 {
+            0% { bottom: -100%; }
+            50%, 100% { bottom: 100%; }
+        }
+
+        /* NOVO ESTILO PARA O LINK DE RETORNO (similar ao admlogin.html) */
+        .login-link-return {
+            display: block; /* Para ocupar toda a largura e permitir margin-top */
+            margin-top: 15px; /* Ajuste o espaçamento conforme necessário */
+            font-size: 0.9rem; /* Tamanho da fonte */
+            color: var(--dark-200); /* Cor do texto padrão do link */
+            text-decoration: none; /* Remove sublinhado padrão */
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .login-link-return:hover {
+            color: var(--primary-light); /* Cor no hover */
+            text-decoration: underline; /* Adiciona sublinhado no hover */
+        }

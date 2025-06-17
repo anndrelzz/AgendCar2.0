@@ -1,0 +1,156 @@
+.container {
+    background-color: #0d404f;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: #fff(189, 9, 9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-family: sans-serif;
+        }
+
+        .subtitle {
+            color: #fff;
+            margin-bottom: 30px;
+            font-family: sans-serif;
+        }
+
+        .car-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+            font-weight: 500;
+            font-family: sans-serif;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #fff;
+            border-radius: 4px;
+            font-size: 16px;
+            font-family: sans-serif;
+        }
+
+        .form-info {
+            margin: 20px 0;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+
+        .btn {
+            font-family: sans-serif;
+            background: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #fff;
+            color: #0d404f;
+            font-weight: bold;
+        }
+
+        .price-table {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .price-table h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .price-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* New styles for the redirect button */
+        .redirect-button {
+            font-family: sans-serif;
+            justify-content: center;
+            display: block;
+            width: 45%;
+            padding: 12px 24px;
+            margin-top: 20px;
+            background: transparent;
+            border: 2px solid #fff;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .redirect-button:hover {
+            background: #fff;
+            color: #0d404f;
+            font-weight: bold;
+        }
+
+        .button-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+/* Validação de formulário */
+input:invalid {
+    border-color: #0d404f;
+}
+
+input:invalid:focus {
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+    .register-card {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .register-card h1 {
+        font-size: 1.5rem;
+    }
+}

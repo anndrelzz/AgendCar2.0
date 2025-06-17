@@ -1,0 +1,293 @@
+:root {
+            --primary: #0d404f;
+            --primary-light: #1a5e70;
+            --primary-dark: #082830;
+            --accent: #f87060;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --white: #ffffff;
+            --light-100: #f8f9fa;
+            --light-200: #e9ecef;
+            --light-300: #dee2e6;
+            --dark-100: #6c757d;
+            --dark-200: #495057;
+            --dark-300: #343a40;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --border-radius: 0.5rem;
+            --transition: all 0.3s ease;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); /* Fundo gradiente com cores do dashboard */
+            color: var(--dark-300);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* Evita scroll desnecessário */
+        }
+
+        /* Login Container */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: var(--white);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px; /* Largura máxima para o card de login */
+            text-align: center;
+            animation: fadeInScale 0.5s ease-out; /* Animação de entrada */
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .login-title {
+            color: var(--primary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .login-subtitle {
+            color: var(--dark-100);
+            font-size: 1rem;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* Forms (Reutilizando estilos do dashboard) */
+        .login-form {
+            margin-top: var(--spacing-md);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+            text-align: left; /* Alinha labels à esquerda */
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 500;
+            color: var(--dark-200);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--light-300);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13, 64, 79, 0.1);
+        }
+
+        /* Buttons (Reutilizando estilos do dashboard) */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem; /* Ajustado para botões maiores no login */
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600; /* Mais negrito */
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            font-size: 1rem;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-full-width {
+            width: 100%;
+            margin-top: var(--spacing-md);
+        }
+
+        /* Error Message */
+        .error-message {
+            background-color: rgba(231, 76, 60, 0.1); /* Fundo vermelho claro */
+            color: var(--danger);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius);
+            margin-top: var(--spacing-lg);
+            font-size: 0.9rem;
+        }
+
+        /* Utility Classes */
+        .d-none {
+            display: none;
+        }
+
+        /* Link para clientes */
+        .client-login-link {
+            margin-top: var(--spacing-lg); /* Espaço acima do link */
+            font-size: 0.9rem;
+            color: var(--dark-200);
+        }
+
+        .client-login-link a {
+            color: var(--primary); /* Cor do link igual ao primário */
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .client-login-link a:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        /* Responsividade básica */
+        @media (max-width: 600px) {
+            .login-card {
+                margin: var(--spacing-lg);
+                padding: var(--spacing-lg);
+            }
+
+            .login-title {
+                font-size: 2rem;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 64, 79, 0.9); /* Usando a cor primary com transparência */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Garante que fique acima de tudo */
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.d-none {
+            opacity: 0;
+            pointer-events: none; /* Permite clicar através quando invisível */
+        }
+
+        .loader {
+            --loader: var(--accent); /* Usando a cor accent do tema AgendCar */
+            --loader-size: 30px;
+            position: relative;
+            width: 100px;
+            height: 40px;
+            overflow: hidden;
+            transition: .5s;
+            letter-spacing: 2px;
+        }
+
+        .loader span {
+            position: absolute;
+        }
+
+        .loader span:nth-child(1) {
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: var(--loader-size);
+            background: linear-gradient(90deg, transparent, var(--loader));
+            animation: loader-anim1 1s linear infinite;
+        }
+
+        @keyframes loader-anim1 {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
+
+        .loader span:nth-child(2) {
+            top: -100%;
+            right: 0;
+            width: var(--loader-size);
+            height: 100%;
+            background: linear-gradient(180deg, transparent, var(--loader));
+            animation: loader-anim2 1s linear infinite;
+            animation-delay: .25s
+        }
+
+        @keyframes loader-anim2 {
+            0% { top: -100%; }
+            50%, 100% { top: 100%; }
+        }
+
+        .loader span:nth-child(3) {
+            bottom: 0;
+            right: -100%;
+            width: 100%;
+            height: var(--loader-size);
+            background: linear-gradient(270deg, transparent, var(--loader));
+            animation: loader-anim3 1s linear infinite;
+            animation-delay: .5s
+        }
+
+        @keyframes loader-anim3 {
+            0% { right: -100%; }
+            50%, 100% { right: 100%; }
+        }
+
+        .loader span:nth-child(4) {
+            bottom: -100%;
+            left: 0;
+            width: var(--loader-size);
+            height: 100%;
+            background: linear-gradient(360deg, transparent, var(--loader));
+            animation: loader-anim4 1s linear infinite;
+            animation-delay: .75s
+        }
+
+        @keyframes loader-anim4 {
+            0% { bottom: -100%; }
+            50%, 100% { bottom: 100%; }
+        }

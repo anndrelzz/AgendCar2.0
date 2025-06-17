@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/admlogin.css">
+    <title>ADM - Login</title>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h1 class="login-title">AgendCar</h1>
+            <p class="login-subtitle">Acesso ao Painel Administrativo</p>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="admin@agendcar.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">Senha</label>
+                    <input type="password" id="password" class="form-control" placeholder="********" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full-width">Entrar</button>
+            </form>
+            
+            <div id="errorMessage" class="error-message d-none">
+                Email ou senha incorretos.
+            </div>
+
+            <p class="client-login-link">
+                É um cliente? <a href="register.html" id="clientLoginLink">Faça seu login ou cadastro aqui!</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="loader">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <script src="js/admlogin.js"></script>
+</body>
+</html>

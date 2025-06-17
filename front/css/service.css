@@ -1,0 +1,799 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #012733, #2d2d2d);
+            overflow-x: hidden; /* Mantido para evitar barras de rolagem horizontais indesejadas */
+            overflow-y: auto; /* Permite rolagem vertical normal */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Navegação */
+        .nav-bar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            height: 70px;
+            z-index: 1000;
+            padding: 1rem 0;
+            display: flex; /* Adicionado para centralizar conteúdo via flex */
+            justify-content: center; /* Centraliza o container */
+            align-items: center;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            width: 100%; /* Garante que o nav-content use a largura total do container */
+        }
+
+        .nav-logo {
+            position: fixed;
+            left: 0;
+            margin-left: 50px;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #0d404f;
+        }
+
+        .sidebar {
+            position: fixed;
+            border: 3px solid #0d404f;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex; /* Para controlar o alinhamento do logout-btn */
+            flex-direction: column; /* Para empilhar o conteúdo */
+        }
+
+        .sidebar.visible {
+            right: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .profile-content {
+            padding-top: 20px;
+            flex: 1; /* Ocupa o espaço restante para empurrar o logout-btn para o final */
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-info p svg {
+            margin-right: 10px;
+        }
+
+        .edit-profile-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #4a5568;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .edit-profile-btn:hover {
+            background-color: #e2e8f0;
+        }
+
+        .vehicles-section {
+            margin-bottom: 30px;
+        }
+
+        .vehicle-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .vehicle-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            padding-right: 30px;
+        }
+
+        .vehicle-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .vehicle-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .edit-vehicle-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #0d404f;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .edit-vehicle-btn:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Appointments Section */
+        .appointments-section {
+            margin-bottom: 30px;
+        }
+
+        .appointment-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            border-left: 4px solid #0d404f;
+        }
+
+        .appointment-card h5 {
+            margin: 0 0 10px 0;
+            color: #0d404f;
+            font-size: 16px;
+        }
+
+        .appointment-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+        }
+
+        .appointment-info p {
+            margin: 3px 0;
+            font-size: 14px;
+        }
+
+        .cancel-appointment-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .cancel-appointment-btn:hover {
+            background-color: #c82333;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 15px;
+            background: #fff;
+            color: #0d404f;
+            border: 1px solid #0d404f;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            margin-top: auto; /* Empurra o botão para o final da sidebar */
+        }
+
+        .logout-btn:hover {
+            background: #0d404f;
+            color: #fff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 8px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .save-btn {
+            background: #0d404f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .save-btn:hover {
+            background: #0a3340;
+        }
+
+        /* Booking Modal Styles */
+        .booking-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .date-time-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .time-slot {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot:hover {
+            background-color: #f8f9fa;
+        }
+
+        .time-slot.selected {
+            background-color: #0d404f;
+            color: white;
+            border-color: #0d404f;
+        }
+
+        .time-slot.unavailable {
+            background-color: #dc3545;
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .booking-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .hero {
+            height: 300px;
+            background-image: url('https://images.unsplash.com/photo-1600706432502-77a0e2e32795?auto=format&fit=crop&q=80');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            padding-top: 70px; /* Adicionado para compensar a nav-bar fixa */
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(264deg, rgba(0,0,0,1) 0%, rgba(13,64,79,0.7371323529411764) 74%, rgba(187,194,195,1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Centraliza horizontalmente o conteúdo do hero */
+            text-align: center; /* Centraliza o texto */
+        }
+
+        .hero-content {
+            color: white;
+            max-width: 800px; /* Limita a largura do conteúdo para melhor leitura */
+            padding: 0 20px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .hero .subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature {
+            display: inline-flex; /* Use inline-flex para alinhar lado a lado com gap */
+            align-items: center;
+            gap: 1rem;
+            margin: 0.5rem 1rem; /* Ajusta margem para centralizar melhor os features */
+        }
+
+        .icon-star, .icon-timer {
+            color: #fbbf24;
+        }
+
+        /* Services Section with Carousel */
+        .services {
+            padding: 1rem 0; /* Diminui o padding vertical */
+        }
+
+        .services-header {
+            text-align: center;
+            margin-bottom: 1rem; /* Diminui a margem inferior */
+        }
+
+        .services-header h2 {
+            font-size: 1.75rem; /* Ajustado um pouco menor */
+            font-weight: bold;
+            margin-bottom: 0.5rem; /* Ajustado um pouco menor */
+            color: white;
+        }
+
+        .services-header p {
+            font-size: 1rem; /* Ajustado um pouco menor */
+            color: #bbb;
+        }
+
+        .services-carousel {
+            max-height: 450px; /* Mantido como você pediu */
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+        }
+
+        .services-container {
+            display: flex;
+            transition: transform 0.5s ease;
+            gap: 2rem;
+            /* overflow-x: auto; */ /* Pode ser útil para scroll manual em mobile */
+        }
+
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(13, 64, 79, 0.15);
+            transition: all 0.3s ease;
+            height: 450px; /* Mantido para cards */
+            min-width: 320px;
+            flex-shrink: 0;
+            display: flex; /* Para flexionar o conteúdo interno do card */
+            flex-direction: column;
+            justify-content: space-between; /* Para empurrar o botão para o final */
+            align-items: center; /* Centraliza conteúdo no card */
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(13, 64, 79, 0.25);
+        }
+
+        .service-icon {
+            color: #0d404f;
+            margin-bottom: 1.5rem;
+            /* text-align: center; */ /* Já centralizado pelo align-items do .service-card */
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            /* text-align: center; */ /* Já centralizado */
+            color: #333;
+        }
+
+        .service-card p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            /* text-align: center; */ /* Já centralizado */
+            line-height: 1.6;
+        }
+
+        .price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0d404f !important;
+            margin: 1.5rem 0;
+            /* text-align: center; */ /* Já centralizado */
+        }
+
+        .duration {
+            font-size: 1rem;
+            color: #888;
+            /* text-align: center; */ /* Já centralizado */
+            margin-bottom: 1.5rem;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #0d404f;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .carousel-nav:hover {
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .carousel-prev {
+            left: 20px;
+        }
+
+        .carousel-next {
+            right: 20px;
+        }
+
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 2rem;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(264deg, rgba(0,0,0,1) 0%, rgba(13,64,79,0.7371323529411764) 74%, rgba(187,194,195,1) 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Buttons (ajustes globais para botões de agendamento também) */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%; /* Faz com que o botão Agendar ocupe a largura do card */
+            background-color: transparent;
+            color: #0d404f;
+            border: 2px solid #0d404f;
+            font-size: 1.1rem;
+            text-align: center; /* Garante que o texto do botão esteja centralizado */
+        }
+
+        .btn:hover {
+            background-color: #0d404f;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 64, 79, 0.3);
+        }
+
+        .btn-white {
+            background-color: transparent;
+            color: #fff;
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            border: 2px solid #fff;
+        }
+
+        .btn-white:hover {
+            background-color: #f8f9fa;
+            color: #0d404f;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero {
+                height: 250px; /* Reduz altura do hero em mobile */
+            }
+            .hero h1 {
+                font-size: 2rem; /* Reduz tamanho do título do hero */
+            }
+            .hero .subtitle {
+                font-size: 1rem; /* Reduz tamanho do subtítulo do hero */
+            }
+            .feature {
+                flex-direction: column; /* Empilha features em mobile */
+                align-items: center;
+                margin-top: 0.5rem;
+            }
+
+            .services-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .service-card {
+                min-width: 280px;
+                padding: 1.5rem;
+            }
+
+            .date-time-section {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            }
+
+            .carousel-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .carousel-prev {
+                left: 10px;
+            }
+
+            .carousel-next {
+                right: 10px;
+            }
+
+            .cta h2 {
+                font-size: 1.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .service-card {
+                min-width: 250px;
+            }
+        }
+
+        /* LOADER CSS (Mesmo do admlogin.html) */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 64, 79, 0.9); /* Usando a cor primary com transparência */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Garante que fique acima de tudo */
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.d-none {
+            opacity: 0;
+            pointer-events: none; /* Permite clicar através quando invisível */
+        }
+
+        .loader {
+            --loader: #f87060; /* Usando a cor accent do tema AgendCar */
+            --loader-size: 30px;
+            position: relative;
+            width: 100px;
+            height: 40px;
+            overflow: hidden;
+            transition: .5s;
+            letter-spacing: 2px;
+        }
+
+        .loader span {
+            position: absolute;
+        }
+
+        .loader span:nth-child(1) {
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: var(--loader-size);
+            background: linear-gradient(90deg, transparent, var(--loader));
+            animation: loader-anim1 1s linear infinite;
+        }
+
+        @keyframes loader-anim1 {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
+
+        .loader span:nth-child(2) {
+            top: -100%;
+            right: 0;
+            width: var(--loader-size);
+            height: 100%;
+            background: linear-gradient(180deg, transparent, var(--loader));
+            animation: loader-anim2 1s linear infinite;
+            animation-delay: .25s
+        }
+
+        @keyframes loader-anim2 {
+            0% { top: -100%; }
+            50%, 100% { top: 100%; }
+        }
+
+        .loader span:nth-child(3) {
+            bottom: 0;
+            right: -100%;
+            width: 100%;
+            height: var(--loader-size);
+            background: linear-gradient(270deg, transparent, var(--loader));
+            animation: loader-anim3 1s linear infinite;
+            animation-delay: .5s
+        }
+
+        @keyframes loader-anim3 {
+            0% { right: -100%; }
+            50%, 100% { right: 100%; }
+        }
+
+        .loader span:nth-child(4) {
+            bottom: -100%;
+            left: 0;
+            width: var(--loader-size);
+            height: 100%;
+            background: linear-gradient(360deg, transparent, var(--loader));
+            animation: loader-anim4 1s linear infinite;
+            animation-delay: .75s
+        }
+
+        @keyframes loader-anim4 {
+            0% { bottom: -100%; }
+            50%, 100% { bottom: 100%; }
+        }

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/admin.css">
+    <title>ADM - page</title>
+</head>
+<body>
+    <div class="admin-layout">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">AgendCar</div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <span>☰</span>
+                </button>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-section="dashboard">
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="appointments">
+                        <span class="nav-text">Agendamentos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="services">
+                        <span class="nav-text">Serviços</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="clients">
+                        <span class="nav-text">Clientes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="settings">
+                        <span class="nav-text">Configurações</span>
+                    </a>
+                </li>
+                <li class="nav-item logout-item">
+                    <a href="#" class="nav-link" id="logoutBtnSidebar"> <span class="nav-text">Desconectar</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="main-header">
+                <div class="d-flex align-center gap-3">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+                    <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="newAppointmentBtn">Novo Agendamento</button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <section class="content-section active" id="dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-content">
+                                <div class="stat-value">24</div>
+                                <div class="stat-label">Agendamentos Hoje</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-content">
+                                <div class="stat-value">186</div>
+                                <div class="stat-label">Agendamentos no Mês</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-content">
+                                <div class="stat-value">R$ 15.840</div>
+                                <div class="stat-label">Faturamento Mensal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2 class="table-title">Próximos Agendamentos</h2>
+                            <div class="table-actions">
+                                <input type="text" class="search-input" placeholder="Buscar agendamentos..." id="dashboardSearch">
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Serviço</th>
+                                    <th>Data</th>
+                                    <th>Horário</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardAppointments">
+                                <tr>
+                                    <td data-label="Cliente">João Silva</td>
+                                    <td data-label="Serviço">Lavagem Completa</td>
+                                    <td data-label="Data">15/03/2024</td>
+                                    <td data-label="Horário">14:30</td>
+                                    <td data-label="Status"><span class="status-badge status-scheduled">Agendado</span></td>
+                                </tr>
+                                <tr>
+                                    <td data-label="Cliente">Maria Santos</td>
+                                    <td data-label="Serviço">Polimento</td>
+                                    <td data-label="Data">15/03/2024</td>
+                                    <td data-label="Horário">16:00</td>
+                                    <td data-label="Status"><span class="status-badge status-confirmed">Confirmado</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="content-section" id="appointments">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2 class="table-title">Todos os Agendamentos</h2>
+                            <div class="table-actions">
+                                <select class="form-control" id="statusFilter" style="width: auto;">
+                                    <option value="">Todos os Status</option>
+                                    <option value="scheduled">Agendado</option>
+                                    <option value="confirmed">Confirmado</option>
+                                    <option value="completed">Concluído</option>
+                                    <option value="cancelled">Cancelado</option>
+                                </select>
+                                <input type="text" class="search-input" placeholder="Buscar agendamentos..." id="appointmentSearch">
+                                <button class="btn btn-primary" id="addAppointmentBtn">Adicionar</button>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Serviço</th>
+                                    <th>Data</th>
+                                    <th>Horário</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsTable">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="content-section" id="services">
+                    <div class="table-header mb-4">
+                        <h2 class="table-title">Gerenciar Serviços</h2>
+                        <div class="table-actions">
+                            <input type="text" class="search-input" placeholder="Buscar serviços..." id="serviceSearch">
+                            <button class="btn btn-primary" id="addServiceBtn">Adicionar Serviço</button>
+                        </div>
+                    </div>
+                    <div class="services-grid" id="servicesGrid">
+                        </div>
+                </section>
+
+                <section class="content-section" id="clients">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2 class="table-title">Clientes</h2>
+                            <div class="table-actions">
+                                <input type="text" class="search-input" placeholder="Buscar clientes..." id="clientSearch">
+                                <button class="btn btn-primary" id="addClientBtn">Adicionar Cliente</button>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Telefone</th>
+                                    <th>Agendamentos</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientsTable">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="content-section" id="settings">
+                    <div class="stats-grid">
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h2 class="table-title">Configurações da Empresa</h2>
+                            </div>
+                            <div style="padding: var(--spacing-lg);">
+                                <form id="companyForm">
+                                    <div class="form-group">
+                                        <label class="form-label">Nome da Empresa</label>
+                                        <input type="text" class="form-control" value="AgendCar">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" value="contato@agendcar.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefone</label>
+                                        <input type="tel" class="form-control" value="(11) 99999-9999">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h2 class="table-title">Horário de Funcionamento</h2>
+                            </div>
+                            <div style="padding: var(--spacing-lg);">
+                                <form id="hoursForm">
+                                    <div class="form-group">
+                                        <label class="form-label">Segunda a Sexta</label>
+                                        <div class="form-row">
+                                            <input type="time" class="form-control" value="08:00">
+                                            <input type="time" class="form-control" value="18:00">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Sábado</label>
+                                        <div class="form-row">
+                                            <input type="time" class="form-control" value="08:00">
+                                            <input type="time" class="form-control" value="12:00">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="modal" id="appointmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="appointmentModalTitle">Novo Agendamento</h3>
+                <button class="modal-close" data-modal="appointmentModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    <input type="hidden" id="appointmentId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Cliente</label>
+                            <select class="form-control" id="appointmentClient" required>
+                                <option value="">Selecione um cliente</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Serviço</label>
+                            <select class="form-control" id="appointmentService" required>
+                                <option value="">Selecione um serviço</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Data</label>
+                            <input type="date" class="form-control" id="appointmentDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Horário</label>
+                            <input type="time" class="form-control" id="appointmentTime" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Valor</label>
+                            <input type="number" step="0.01" class="form-control" id="appointmentValue" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" id="appointmentStatus" required>
+                                <option value="scheduled">Agendado</option>
+                                <option value="confirmed">Confirmado</option>
+                                <option value="completed">Concluído</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="appointmentModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveAppointmentBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="serviceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="serviceModalTitle">Novo Serviço</h3>
+                <button class="modal-close" data-modal="serviceModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="serviceForm">
+                    <input type="hidden" id="serviceId">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Serviço</label>
+                        <input type="text" class="form-control" id="serviceName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Preço (R$)</label>
+                            <input type="number" step="0.01" class="form-control" id="servicePrice" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Duração (min)</label>
+                            <input type="number" class="form-control" id="serviceDuration" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" id="serviceDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="serviceModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveServiceBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="clientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="clientModalTitle">Novo Cliente</h3>
+                <button class="modal-close" data-modal="clientModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="clientForm">
+                    <input type="hidden" id="clientId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="clientEmail" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="clientPhone" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="clientModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveClientBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
