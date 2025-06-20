@@ -13,7 +13,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: 'https://agendcar.vercel.app/'
+    origin: 'https://agendcar.vercel.app'
 })); // Permite requisições de diferentes origens (seu frontend)
 app.use(express.json()); // Permite que o Express leia JSON do corpo da requisição
 
