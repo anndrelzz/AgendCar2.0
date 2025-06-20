@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading(); // MOSTRA O LOADING
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', { // URL DO BACKEND
+            const response = await fetch('agendcar20-production.up.railway.app/api/auth/login', { // URL DO BACKEND
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
