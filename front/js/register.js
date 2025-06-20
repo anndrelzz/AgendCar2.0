@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/register', { // URL DO BACKEND
+            const response = await fetch('https://agendcar20-production.up.railway.app//api/auth/register', { // URL DO BACKEND
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', { // URL DO BACKEND
+            const response = await fetch('https://agendcar20-production.up.railway.app//api/auth/login', { // URL DO BACKEND
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

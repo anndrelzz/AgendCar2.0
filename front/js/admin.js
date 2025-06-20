@@ -175,7 +175,7 @@ async function loadAppointments() {
         await loadVehiclesFromBackend(); // Carrega todos os veículos (admin view)
         await loadServicesFromBackend();
 
-        const response = await fetch('http://localhost:5000/api/appointments', {
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/appointments', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -247,7 +247,7 @@ async function deleteAppointment(id) {
     if (confirm('Tem certeza que deseja excluir este agendamento?')) {
         showLoading();
         try {
-            const response = await fetch(`http://localhost:5000/api/appointments/${id}`, {
+            const response = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
             });
@@ -292,10 +292,10 @@ async function saveAppointment() {
 
         if (id) {
             method = 'PUT';
-            url = `http://localhost:5000/api/appointments/${id}`;
+            url = `https://agendcar20-production.up.railway.app//api/appointments/${id}`;
         } else {
             method = 'POST';
-            url = 'http://localhost:5000/api/appointments';
+            url = 'https://agendcar20-production.up.railway.app//api/appointments';
         }
 
         response = await fetch(url, {
@@ -332,7 +332,7 @@ async function loadServices() {
     container.innerHTML = '<div style="text-align: center; width: 100%;">Carregando serviços...</div>';
 
     try {
-        const response = await fetch('http://localhost:5000/api/services');
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/services');
         const data = await response.json();
 
         if (response.ok) {
@@ -387,7 +387,7 @@ async function deleteService(id) {
     if (confirm('Tem certeza que deseja excluir este serviço?')) {
         showLoading();
         try {
-            const response = await fetch(`http://localhost:5000/api/services/${id}`, {
+            const response = await fetch(`https://agendcar20-production.up.railway.app//api/services/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
             });
@@ -428,10 +428,10 @@ async function saveService() {
 
         if (id) {
             method = 'PUT';
-            url = `http://localhost:5000/api/services/${id}`;
+            url = `https://agendcar20-production.up.railway.app//api/services/${id}`;
         } else {
             method = 'POST';
-            url = 'http://localhost:5000/api/services';
+            url = 'https://agendcar20-production.up.railway.app//api/services';
         }
 
         response = await fetch(url, {
@@ -468,7 +468,7 @@ async function loadClients() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando clientes...</td></tr>';
 
     try {
-        const response = await fetch('http://localhost:5000/api/users', {
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/users', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -511,7 +511,7 @@ async function deleteClient(id) { // id agora é o _id do MongoDB
     if (confirm('Tem certeza que deseja excluir este cliente? Isso também excluirá seus agendamentos e veículos!')) {
         showLoading();
         try {
-            const response = await fetch(`http://localhost:5000/api/users/${id}`, {
+            const response = await fetch(`https://agendcar20-production.up.railway.app//api/users/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
             });
@@ -578,7 +578,7 @@ async function updateServiceOptions() {
 // --- Helper Functions to Fetch Data from Backend ---
 async function loadClientsFromBackend() {
     try {
-        const response = await fetch('http://localhost:5000/api/users', {
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/users', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -594,7 +594,7 @@ async function loadClientsFromBackend() {
 
 async function loadServicesFromBackend() {
     try {
-        const response = await fetch('http://localhost:5000/api/services'); // Esta rota é pública
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/services'); // Esta rota é pública
         const data = await response.json();
         if (response.ok) {
             currentServices = data;
@@ -609,7 +609,7 @@ async function loadServicesFromBackend() {
 async function loadVehiclesFromBackend() {
     try {
         // Como admin, queremos carregar todos os veículos para mapeamento nos agendamentos
-        const response = await fetch('http://localhost:5000/api/vehicles', {
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/vehicles', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();

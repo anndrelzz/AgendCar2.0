@@ -141,7 +141,7 @@ async function loadInitialData() {
 // NOVO: Função para carregar serviços do backend
 async function loadServicesFromBackend() {
     try {
-        const response = await fetch('http://localhost:5000/api/services');
+        const response = await fetch('https://agendcar20-production.up.railway.app/0/api/services');
         const data = await response.json();
         if (response.ok) {
             services = data; // Preenche a variável global 'services'
@@ -251,7 +251,7 @@ async function openProfileEditModal() {
     // Tenta buscar os dados mais recentes do usuário logado do backend
     showLoading();
     try {
-        const response = await fetch(`http://localhost:5000/api/users/${currentUserId}`, {
+        const response = await fetch(`https://agendcar20-production.up.railway.app//api/users/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -304,7 +304,7 @@ async function saveProfile(e) {
     showLoading();
 
     try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        const response = await fetch(`https://agendcar20-production.up.railway.app//api/users/${userId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -544,10 +544,10 @@ async function saveVehicle() {
 
         if (vehicleIdToEdit) {
             method = 'PUT';
-            url = `http://localhost:5000/api/vehicles/${vehicleIdToEdit}`;
+            url = `https://agendcar20-production.up.railway.app//api/vehicles/${vehicleIdToEdit}`;
         } else {
             method = 'POST';
-            url = 'http://localhost:5000/api/vehicles';
+            url = 'https://agendcar20-production.up.railway.app//api/vehicles';
         }
 
         response = await fetch(url, {
@@ -723,7 +723,7 @@ async function handleBookingSubmit(e) {
     };
 
     try {
-        const response = await fetch('http://localhost:5000/api/appointments', {
+        const response = await fetch('https://agendcar20-production.up.railway.app//api/appointments', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -772,7 +772,7 @@ async function loadUserData() {
     showLoading();
     try {
         // Carregar veículos do backend para o usuário logado
-        const vehiclesResponse = await fetch(`http://localhost:5000/api/vehicles/user/${currentUserId}`, {
+        const vehiclesResponse = await fetch(`https://agendcar20-production.up.railway.app//api/vehicles/user/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -807,7 +807,7 @@ async function loadUserData() {
         }
 
         // Carregar agendamentos do backend para o usuário logado
-        const appointmentsResponse = await fetch(`http://localhost:5000/api/appointments/user/${currentUserId}`, {
+        const appointmentsResponse = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/user/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -869,7 +869,7 @@ async function cancelAppointment(appointmentId) {
     if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
         showLoading();
         try {
-            const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
+            const response = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/${appointmentId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -953,7 +953,7 @@ async function deleteVehicle(vehicleId) { // vehicleId agora é o _id do MongoDB
     if (confirm('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.')) {
         showLoading();
         try {
-            const response = await fetch(`http://localhost:5000/api/vehicles/${vehicleId}`, {
+            const response = await fetch(`https://agendcar20-production.up.railway.app//api/vehicles/${vehicleId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${currentUserToken}`
@@ -1001,7 +1001,7 @@ async function loadHistoryData() {
     showLoading();
     try {
         // Carrega TODOS os agendamentos do usuário (incluindo cancelados/completos)
-        const response = await fetch(`http://localhost:5000/api/appointments/user/${currentUserId}`, {
+        const response = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/user/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
