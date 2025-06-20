@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginErrorMessageDiv.classList.add('d-none');
 
                 setTimeout(() => {
-                    window.location.href = "service.html";
+                    window.location.href = "index.html";
                 }, 1500);
 
             } else {
