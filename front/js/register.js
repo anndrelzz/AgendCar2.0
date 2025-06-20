@@ -1,12 +1,12 @@
 // register.js
 
-// --- Funções de Loading (reutilizadas de outras páginas) ---
+// --- Funções de Loading e Toast (manter as existentes) ---
 function showLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
         overlay.classList.remove('d-none');
-        overlay.classList.add('active'); // Garante que a classe 'active' também seja adicionada
-        document.body.style.overflow = 'hidden'; // Impede o scroll durante o carregamento
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
 }
 
@@ -14,12 +14,11 @@ function hideLoading() {
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) {
         loadingOverlay.classList.add('d-none');
-        loadingOverlay.classList.remove('active'); // Remove a classe 'active' também
-        document.body.style.overflow = ''; // Restaura o scroll
+        loadingOverlay.classList.remove('active');
+        document.body.style.overflow = '';
     }
 }
 
-// --- Funções de Toast (para mensagens de feedback) ---
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -48,29 +47,26 @@ function showToast(message, type = 'info') {
     document.body.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.transform = 'translateX(0)'; // Mostra o toast
+        toast.style.transform = 'translateX(0)';
     }, 100);
 
     setTimeout(() => {
-        toast.style.transform = 'translateX(100%)'; // Esconde o toast
+        toast.style.transform = 'translateX(100%)';
         setTimeout(() => {
             document.body.removeChild(toast);
         }, 300);
-    }, 3000); // Remove depois de 3 segundos
+    }, 3000);
 }
 
 
-// --- Lógica Principal da Página (executada após o DOM carregar) ---
 document.addEventListener('DOMContentLoaded', function() {
-    hideLoading(); // Esconde o loading assim que o DOM desta página estiver completamente carregado
+    hideLoading();
 
-    // --- Elementos HTML ---
     var btnsignin = document.querySelector("#signin");
     var btnsignup = document.querySelector("#signup");
     var body = document.querySelector("body");
-    var adminLoginLink = document.getElementById("adminLoginLink"); // Link para adm login
+    var adminLoginLink = document.getElementById("adminLoginLink");
 
-    // Formulários e campos de input
     const registerForm = document.getElementById('registerForm');
     const registerNameInput = document.getElementById('registerName');
     const registerEmailInput = document.getElementById('registerEmail');
@@ -82,25 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginPasswordInput = document.getElementById('loginPassword');
     const loginErrorMessageDiv = document.getElementById('loginErrorMessage');
 
-    // --- Gerenciamento de Usuários (localStorage) ---
-    // Carrega usuários existentes ou inicia uma array vazia
-    let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-
-    function saveUsersToLocalStorage() {
-        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-    }
-
-    // --- Funções de Registro e Login ---
+    // --- FUNÇÕES DE REGISTRO E LOGIN (AGORA COM BACKEND) ---
 
     // Função de Registro de Cliente
-    function handleRegisterSubmit(event) { // Renomeado para evitar conflito com 'registerUser'
-        event.preventDefault(); // Impede o envio padrão do formulário
+    async function handleRegisterSubmit(event) {
+        event.preventDefault();
 
         const name = registerNameInput.value.trim();
         const email = registerEmailInput.value.trim();
         const password = registerPasswordInput.value.trim();
 
-        registerErrorMessageDiv.classList.add('d-none'); // Esconde mensagens anteriores
+        registerErrorMessageDiv.classList.add('d-none');
 
         if (!name || !email || !password) {
             registerErrorMessageDiv.textContent = 'Por favor, preencha todos os campos.';
@@ -110,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (password.length < 6) { // Exemplo de validação de senha
+        if (password.length < 6) {
             registerErrorMessageDiv.textContent = 'A senha deve ter no mínimo 6 caracteres.';
             registerErrorMessageDiv.classList.remove('d-none');
             registerErrorMessageDiv.classList.remove('success-message');
@@ -118,55 +106,51 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Verifica se o email já existe
-        const userExists = registeredUsers.some(user => user.email === email);
-        if (userExists) {
-            registerErrorMessageDiv.textContent = 'Este e-mail já está cadastrado.';
+        showLoading();
+
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/register', { // URL DO BACKEND
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            const data = await response.json();
+            hideLoading();
+
+            if (response.ok) {
+                showToast('Cadastro realizado com sucesso! Faça seu login agora.', 'success');
+                registerErrorMessageDiv.classList.add('d-none');
+                registerForm.reset();
+                body.className = "sign-in-js"; // Redireciona visualmente para a tela de login
+            } else {
+                registerErrorMessageDiv.textContent = data.message || 'Erro ao registrar usuário.';
+                registerErrorMessageDiv.classList.remove('d-none');
+                registerErrorMessageDiv.classList.remove('success-message');
+                registerErrorMessageDiv.classList.add('error-message');
+                showToast(data.message || 'Erro ao registrar.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro de rede ou servidor:', error);
+            registerErrorMessageDiv.textContent = 'Erro de conexão. Tente novamente mais tarde.';
             registerErrorMessageDiv.classList.remove('d-none');
             registerErrorMessageDiv.classList.remove('success-message');
             registerErrorMessageDiv.classList.add('error-message');
-            return;
+            showToast('Erro de conexão.', 'error');
         }
-
-        // Simular hash de senha (em um ambiente real, faria isso no backend)
-        const hashedPassword = password; // Em um cenário real, usaria bcrypt.hash(password)
-
-        const newUser = {
-            id: Date.now(), // ID simples para localStorage, Supabase usaria UUID
-            name: name,
-            email: email,
-            password: hashedPassword, // Armazenando em texto puro para teste frontend. MUDAR PARA HASH COM BACKEND!
-            phone: '', // Pode adicionar um campo de telefone no registro
-            role: 'client' 
-        };
-
-        registeredUsers.push(newUser);
-        saveUsersToLocalStorage(); // Salva o novo usuário
-
-        // Mensagem de sucesso
-        registerErrorMessageDiv.textContent = 'Cadastro realizado com sucesso! Faça seu login agora.';
-        registerErrorMessageDiv.classList.remove('d-none');
-        registerErrorMessageDiv.classList.remove('error-message');
-        registerErrorMessageDiv.classList.add('success-message');
-        
-        // Limpa os campos após o registro bem-sucedido
-        registerNameInput.value = '';
-        registerEmailInput.value = '';
-        registerPasswordInput.value = '';
-
-        // Opcional: Redirecionar para a aba de login após o registro
-        body.className = "sign-in-js"; // Muda para a tela de login
-        showToast('Cadastro realizado com sucesso!', 'success');
     }
 
     // Função de Login de Cliente
-    function handleLoginSubmit(event) { // Renomeado para evitar conflito com 'loginUser'
-        event.preventDefault(); // Impede o envio padrão do formulário
+    async function handleLoginSubmit(event) {
+        event.preventDefault();
 
         const email = loginEmailInput.value.trim();
         const password = loginPasswordInput.value.trim();
 
-        loginErrorMessageDiv.classList.add('d-none'); // Esconde mensagens anteriores
+        loginErrorMessageDiv.classList.add('d-none');
 
         if (!email || !password) {
             loginErrorMessageDiv.textContent = 'Por favor, insira seu e-mail e senha.';
@@ -176,62 +160,85 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const foundUser = registeredUsers.find(user => user.email === email && user.password === password); // Em um ambiente real, usaria bcrypt.compare()
+        showLoading();
 
-        if (foundUser) {
-            // Login bem-sucedido: Salva as informações do usuário logado no localStorage
-            localStorage.setItem('userLoggedIn', 'true');
-            localStorage.setItem('userName', foundUser.name);
-            localStorage.setItem('userEmail', foundUser.email);
-            localStorage.setItem('userPhone', foundUser.phone || ''); // Telefone é opcional
-            localStorage.setItem('currentUser', JSON.stringify(foundUser)); // Salva o objeto completo
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/login', { // URL DO BACKEND
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-            loginErrorMessageDiv.textContent = 'Login bem-sucedido! Redirecionando...';
-            loginErrorMessageDiv.classList.remove('d-none');
-            loginErrorMessageDiv.classList.remove('error-message');
-            loginErrorMessageDiv.classList.add('success-message');
+            const data = await response.json();
+            hideLoading();
 
-            showLoading(); // MOSTRA O LOADING
-            setTimeout(() => {
-                // Redireciona para a página de serviços (dashboard do cliente)
-                window.location.href = "service.html"; 
-            }, 1500); // Atraso para ver o loading
+            if (response.ok) {
+                // Login bem-sucedido: Salva as informações do usuário logado e o token no localStorage
+                localStorage.setItem('userLoggedIn', 'true');
+                localStorage.setItem('userToken', data.token); // Salva o JWT
+                localStorage.setItem('userName', data.name);
+                localStorage.setItem('userEmail', data.email);
+                localStorage.setItem('userPhone', data.phone || '');
+                localStorage.setItem('currentUser', JSON.stringify({
+                    id: data._id, // Usar _id do MongoDB
+                    name: data.name,
+                    email: data.email,
+                    phone: data.phone,
+                    role: data.role
+                }));
 
-        } else {
-            loginErrorMessageDiv.textContent = 'E-mail ou senha inválidos.';
+                showToast('Login bem-sucedido! Redirecionando...', 'success');
+                loginErrorMessageDiv.classList.add('d-none');
+
+                setTimeout(() => {
+                    window.location.href = "service.html";
+                }, 1500);
+
+            } else {
+                loginErrorMessageDiv.textContent = data.message || 'E-mail ou senha inválidos.';
+                loginErrorMessageDiv.classList.remove('d-none');
+                loginErrorMessageDiv.classList.remove('success-message');
+                loginErrorMessageDiv.classList.add('error-message');
+                showToast(data.message || 'Erro no login.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro de rede ou servidor:', error);
+            loginErrorMessageDiv.textContent = 'Erro de conexão. Tente novamente mais tarde.';
             loginErrorMessageDiv.classList.remove('d-none');
             loginErrorMessageDiv.classList.remove('success-message');
             loginErrorMessageDiv.classList.add('error-message');
+            showToast('Erro de conexão.', 'error');
         }
     }
 
-    // --- Associa os Event Listeners aos Formulários e Botões ---
+    // --- EVENT LISTENERS ---
     if (registerForm) registerForm.addEventListener('submit', handleRegisterSubmit);
     if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
 
-    // Eventos para a transição entre painéis de Login/Registro
     btnsignin.addEventListener("click", function () {
-        body.className = "sign-in-js"; // Mostra o painel de Login
-        registerErrorMessageDiv.classList.add('d-none'); // Limpa msg do outro form
-        loginErrorMessageDiv.classList.add('d-none'); // Limpa msg do próprio form
-        loginForm.reset(); // Reseta form de login
+        body.className = "sign-in-js";
+        registerErrorMessageDiv.classList.add('d-none');
+        loginErrorMessageDiv.classList.add('d-none');
+        loginForm.reset();
     });
 
     btnsignup.addEventListener("click", function () {
-        body.className = "sign-up-js" // Mostra o painel de Registro
-        loginErrorMessageDiv.classList.add('d-none'); // Limpa msg do outro form
-        registerErrorMessageDiv.classList.add('d-none'); // Limpa msg do próprio form
-        registerForm.reset(); // Reseta form de registro
+        body.className = "sign-up-js"
+        loginErrorMessageDiv.classList.add('d-none');
+        registerErrorMessageDiv.classList.add('d-none');
+        registerForm.reset();
     });
 
-    // Evento para o link "Acesso Administrativo"
     if (adminLoginLink) {
         adminLoginLink.addEventListener("click", function(event) {
-            event.preventDefault(); // Evita o comportamento padrão do link
-            showLoading(); // MOSTRA O LOADING
+            event.preventDefault();
+            showLoading();
             setTimeout(() => {
-                window.location.href = "admlogin.html"; // Redireciona para admlogin.html
-            }, 1500); // Atraso para ver o loading
+                window.location.href = "admlogin.html";
+            }, 1500);
         });
     }
 });

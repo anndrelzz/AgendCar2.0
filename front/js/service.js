@@ -1,18 +1,21 @@
+// service.js
+
 let currentService = null;
 let currentStep = 1;
 let selectedTimeSlot = null;
-let vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
-let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+// As variáveis globais 'vehicles' e 'appointments' agora serão preenchidas do backend
+let vehicles = [];
+let appointments = [];
 
 // Carrega o status de login e as informações do usuário
 let isUserLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
 let userName = localStorage.getItem('userName') || 'Convidado';
 let userEmail = localStorage.getItem('userEmail') || '';
 let userPhone = localStorage.getItem('userPhone') || '';
-// currentUserId agora é crucial para associar agendamentos e veículos ao cliente correto
-let currentUserId = JSON.parse(localStorage.getItem('currentUser'))?.id || null;
+let currentUserToken = localStorage.getItem('userToken') || null; // NOVO: Obter o token
+let currentUserId = JSON.parse(localStorage.getItem('currentUser'))?.id || null; // _id do MongoDB
 
-// Brazilian car brands
+// Brazilian car brands (manter localmente, é estático)
 const brazilianCarBrands = [
     'Chevrolet', 'Volkswagen', 'Ford', 'Fiat', 'Toyota', 'Honda', 'Hyundai',
     'Nissan', 'Renault', 'Peugeot', 'Citroën', 'Jeep', 'Kia', 'Mitsubishi',
@@ -20,91 +23,29 @@ const brazilianCarBrands = [
     'Mercedes-Benz', 'Audi', 'Land Rover', 'Volvo', 'Porsche', 'Outros'
 ];
 
-// Services data - Agora carrega do localStorage ou usa o padrão
-let services = JSON.parse(localStorage.getItem('services')) || [
-    {
-        id: 1,
-        name: 'Lavagem Completa',
-        icon: 'fas fa-car',
-        description: 'Limpeza completa interna e externa do seu veículo com produtos premium.',
-        price: 150.00,
-        duration: 120
-    },
-    {
-        id: 2,
-        name: 'Polimento',
-        icon: 'fas fa-star',
-        description: 'Polimento profissional para remover riscos e restaurar o brilho da pintura.',
-        price: 280.00,
-        duration: 180
-    },
-    {
-        id: 3,
-        name: 'Cristalização',
-        icon: 'fas fa-shield-alt',
-        description: 'Proteção duradoura que mantém seu carro brilhando por mais tempo.',
-        price: 400.00,
-        duration: 240
-    },
-    {
-        id: 4,
-        name: 'Higienização',
-        icon: 'fas fa-broom',
-        description: 'Limpeza profunda de estofados e ar condicionado.',
-        price: 200.00,
-        duration: 150
-    },
-    {
-        id: 5,
-        name: 'Enceramento',
-        icon: 'fas fa-gem',
-        description: 'Aplicação de cera premium para proteção e brilho intenso.',
-        price: 180.00,
-        duration: 90
-    },
-    {
-        id: 6,
-        name: 'Lavagem Simples',
-        icon: 'fas fa-tint',
-        description: 'Lavagem externa básica com produtos de qualidade.',
-        price: 80.00,
-        duration: 60
-    }
-];
+// Services data - AGORA VAI CARREGAR DO BACKEND (no init)
+// Remova a inicialização com dados fixos aqui. A função loadServicesFromBackend() vai preenchê-la.
+let services = [];
 
-// Salva os serviços iniciais no localStorage se ele estava vazio
-if (!localStorage.getItem('services')) {
-    localStorage.setItem('services', JSON.stringify(services));
-}
-
-// Time slots
+// Time slots (manter localmente, é estático)
 const timeSlots = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
     '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
     '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
 ];
 
-// Validação de placa brasileira
+// --- FUNÇÕES DE UTILIIDADE ---
 function validateBrazilianPlate(plate) {
     if (!plate) return false;
 
-    plate = plate.replace(/\s/g, '').toUpperCase();
+    // Garante que a placa está limpa de espaços e em maiúsculas para validação
+    plate = plate.replace(/\s/g, '').toUpperCase(); 
 
-    const oldPlateRegex = /^[A-Z]{3}[0-9]{4}$/;
-    const mercosulPlateRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
+    const oldPlateRegex = /^[A-Z]{3}[0-9]{4}$/; // Padrão antigo (ABC1234)
+    const mercosulPlateRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/; // Padrão Mercosul (ABC1D23)
 
+    // Testa se a placa corresponde ao padrão antigo OU ao padrão Mercosul
     return oldPlateRegex.test(plate) || mercosulPlateRegex.test(plate);
-}
-
-function checkUserLogin() {
-    return localStorage.getItem('userLoggedIn') === 'true';
-}
-
-function redirectToLogin() {
-    showLoading();
-    setTimeout(() => {
-        window.location.href = `register.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-    }, 1500);
 }
 
 function showLoading() {
@@ -125,10 +66,65 @@ function hideLoading() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+
+    Object.assign(toast.style, {
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        background: type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#2563eb',
+        color: 'white',
+        padding: '15px 20px',
+        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        zIndex: '10000',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+        transform: 'translateX(100%)',
+        transition: 'transform 0.3s ease'
+    });
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+// --- FUNÇÕES DE AUTENTICAÇÃO E PERFIL ---
+function checkUserLogin() {
+    return localStorage.getItem('userLoggedIn') === 'true' && localStorage.getItem('userToken');
+}
+
+function redirectToLogin() {
+    showLoading();
+    setTimeout(() => {
+        window.location.href = `register.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    }, 1500);
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
     hideLoading();
-    renderServices();
-    loadUserData();
+    await loadInitialData(); // NOVO: Carregar dados iniciais do backend
     setupEventListeners();
     populateVehicleSelect();
     populateBrandSelect();
@@ -136,9 +132,55 @@ document.addEventListener('DOMContentLoaded', function() {
     updateProfileButton();
 });
 
+async function loadInitialData() {
+    await loadServicesFromBackend(); // Carrega serviços do backend
+    await loadUserData(); // Carrega dados do usuário, veículos e agendamentos
+    renderServices(); // Renderiza os serviços APÓS carregá-los
+}
+
+// NOVO: Função para carregar serviços do backend
+async function loadServicesFromBackend() {
+    try {
+        const response = await fetch('http://localhost:5000/api/services');
+        const data = await response.json();
+        if (response.ok) {
+            services = data; // Preenche a variável global 'services'
+        } else {
+            showToast(data.message || 'Erro ao carregar serviços.', 'error');
+            console.error('Erro ao carregar serviços:', data.message);
+        }
+    } catch (error) {
+        showToast('Erro de conexão ao carregar serviços.', 'error');
+        console.error('Erro de conexão ao carregar serviços:', error);
+    }
+}
+
+function closeBookingModal() {
+    const bookingModal = document.getElementById('bookingModal');
+    bookingModal?.classList.remove('active');
+    document.body.style.overflow = 'auto';
+    resetForm();
+}
+
+function closeProfileEditModal() { // Esta função já está mais acima
+    document.getElementById('profileEditModal')?.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// MOVA A FUNÇÃO closeHistory() PARA CÁ (ou perto de closeProfileEditModal)
+function closeHistory() {
+    console.log('closeHistory chamada!'); // LINHA DE DEBUG
+    const historyModal = document.getElementById('historyModal');
+    if (historyModal) {
+        historyModal.classList.remove('active'); // Remove a classe 'active' para esconder o modal
+        document.body.style.overflow = 'auto'; // Restaura o scroll do body
+    }
+}
+
 function setupEventListeners() {
     const hamburger = document.getElementById('hamburger');
     const profileBtn = document.getElementById('profileBtn');
+    console.log('Botão Perfil encontrado:', profileBtn); // LINHA ADICIONADA PARA DEBUG
     const closeSidebar = document.getElementById('closeSidebar');
     const closeModal = document.getElementById('closeModal');
     const bookingForm = document.getElementById('bookingForm');
@@ -166,6 +208,14 @@ function setupEventListeners() {
     document.getElementById('profileEditModal')?.addEventListener('click', (e) => {
         if (e.target.id === 'profileEditModal') closeProfileEditModal();
     });
+
+    // NOVO: Listener para o botão de fechar o histórico (botão 'X' no modal)
+    document.getElementById('historyModal')?.querySelector('.modal-close')?.addEventListener('click', closeHistory);
+
+    // NOVO: Listener para fechar o histórico clicando fora do modal
+    document.getElementById('historyModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'historyModal') closeHistory();
+    });
 }
 
 function toggleMobileMenu() {
@@ -174,7 +224,9 @@ function toggleMobileMenu() {
 }
 
 function toggleSidebar() {
+    console.log('toggleSidebar chamada!'); // LINHA ADICIONADA PARA DEBUG
     const sidebar = document.getElementById('sidebar');
+    console.log('Sidebar encontrada:', sidebar); // LINHA ADICIONADA PARA DEBUG
     sidebar?.classList.toggle('active');
 }
 
@@ -189,24 +241,39 @@ function updateProfileButton() {
     }
 }
 
-function openProfileEditModal() {
+// FUNÇÃO ATUALIZADA: openProfileEditModal
+async function openProfileEditModal() {
     if (!checkUserLogin()) {
         redirectToLogin();
         return;
     }
 
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser) {
-        document.getElementById('profileUserId').value = currentUser.id;
-        document.getElementById('editProfileName').value = currentUser.name;
-        document.getElementById('editProfileEmail').value = currentUser.email;
-        document.getElementById('editProfilePhone').value = currentUser.phone;
-        
-        document.getElementById('profileEditModal')?.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    } else {
-        showToast('Nenhum usuário logado para editar.', 'error');
-        redirectToLogin();
+    // Tenta buscar os dados mais recentes do usuário logado do backend
+    showLoading();
+    try {
+        const response = await fetch(`http://localhost:5000/api/users/${currentUserId}`, {
+            headers: {
+                'Authorization': `Bearer ${currentUserToken}`
+            }
+        });
+        const currentUserData = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            document.getElementById('profileUserId').value = currentUserData._id;
+            document.getElementById('editProfileName').value = currentUserData.name;
+            document.getElementById('editProfileEmail').value = currentUserData.email;
+            document.getElementById('editProfilePhone').value = currentUserData.phone;
+            
+            document.getElementById('profileEditModal')?.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            showToast(currentUserData.message || 'Erro ao carregar dados do perfil.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showToast('Erro de conexão ao carregar perfil.', 'error');
+        console.error('Erro ao buscar perfil:', error);
     }
 }
 
@@ -215,8 +282,14 @@ function closeProfileEditModal() {
     document.body.style.overflow = 'auto';
 }
 
-function saveProfile(e) {
+// FUNÇÃO ATUALIZADA: saveProfile
+async function saveProfile(e) {
     e.preventDefault();
+
+    if (!checkUserLogin() || !currentUserId) {
+        redirectToLogin();
+        return;
+    }
 
     const userId = document.getElementById('profileUserId').value;
     const newName = document.getElementById('editProfileName').value.trim();
@@ -228,49 +301,66 @@ function saveProfile(e) {
         return;
     }
 
-    let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-    const userIndex = registeredUsers.findIndex(u => u.id == userId);
+    showLoading();
 
-    if (userIndex !== -1) {
-        registeredUsers[userIndex].name = newName;
-        registeredUsers[userIndex].email = newEmail;
-        registeredUsers[userIndex].phone = newPhone;
-        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+    try {
+        const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUserToken}`
+            },
+            body: JSON.stringify({ name: newName, email: newEmail, phone: newPhone }),
+        });
 
-        localStorage.setItem('userName', newName);
-        localStorage.setItem('userEmail', newEmail);
-        localStorage.setItem('userPhone', newPhone);
-        localStorage.setItem('currentUser', JSON.stringify(registeredUsers[userIndex]));
+        const data = await response.json();
+        hideLoading();
 
-        userName = newName;
-        userEmail = newEmail;
-        userPhone = newPhone;
+        if (response.ok) {
+            // Atualizar localStorage com os novos dados do perfil
+            localStorage.setItem('userName', data.name);
+            localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userPhone', data.phone || '');
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: data._id,
+                name: data.name,
+                email: data.email,
+                phone: data.phone,
+                role: data.role
+            }));
 
-        showToast('Perfil atualizado com sucesso!', 'success');
-        loadUserData();
-        updateProfileButton();
-        closeProfileEditModal();
-    } else {
-        showToast('Erro: Usuário não encontrado para atualização.', 'error');
+            userName = data.name;
+            userEmail = data.email;
+            userPhone = data.phone;
+            
+            showToast('Perfil atualizado com sucesso!', 'success');
+            loadUserData(); // Recarregar dados na sidebar
+            updateProfileButton(); // Atualizar botão de perfil na navbar
+            closeProfileEditModal();
+        } else {
+            showToast(data.message || 'Erro ao atualizar perfil.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro de rede ou servidor:', error);
+        showToast('Erro de conexão. Tente novamente mais tarde.', 'error');
     }
 }
 
+// FUNÇÃO ATUALIZADA: renderServices (remover ícone)
 function renderServices() {
     const servicesGrid = document.getElementById('servicesGrid');
     if (!servicesGrid) return;
 
     servicesGrid.innerHTML = services.map(service => `
         <div class="service-card">
-            <div class="service-icon">
-                <i class="${service.icon}"></i>
-            </div>
             <h3>${service.name}</h3>
             <p class="description">${service.description}</p>
             <div class="service-details">
                 <span class="price">R$ ${service.price.toFixed(2)}</span>
                 <span class="duration">${service.duration} min</span>
             </div>
-            <button class="book-btn" onclick="openBookingModal(${service.id})">
+            <button class="book-btn" onclick="openBookingModal('${service._id}')">
                 <i class="fas fa-calendar-plus"></i>
                 Agendar
             </button>
@@ -278,14 +368,18 @@ function renderServices() {
     `).join('');
 }
 
-function openBookingModal(serviceId) {
+// FUNÇÃO ATUALIZADA: openBookingModal (passar _id do serviço)
+function openBookingModal(serviceId) { // serviceId agora é _id
     if (!checkUserLogin()) {
         redirectToLogin();
         return;
     }
 
-    currentService = services.find(s => s.id === serviceId);
-    if (!currentService) return;
+    currentService = services.find(s => s._id === serviceId); // Buscar por _id
+    if (!currentService) {
+        showToast('Serviço não encontrado.', 'error');
+        return;
+    }
 
     const bookingModal = document.getElementById('bookingModal');
     bookingModal?.classList.add('active');
@@ -408,8 +502,9 @@ function populateBrandSelect() {
         brazilianCarBrands.map(brand => `<option value="${brand}">${brand}</option>`).join('');
 }
 
-function saveVehicle() {
-    if (!currentUserId) { // Garante que há um usuário logado para associar o carro
+// FUNÇÃO ATUALIZADA: saveVehicle
+async function saveVehicle() {
+    if (!checkUserLogin() || !currentUserId) {
         showToast('Você precisa estar logado para adicionar um veículo.', 'error');
         redirectToLogin();
         return;
@@ -420,7 +515,7 @@ function saveVehicle() {
     const model = document.getElementById('vehicleModel')?.value?.trim();
     const type = document.getElementById('vehicleType')?.value;
     const color = document.getElementById('vehicleColor')?.value?.trim();
-    const vehicleIdToEdit = document.getElementById('vehicleIdToEdit')?.value;
+    const vehicleIdToEdit = document.getElementById('vehicleIdToEdit')?.value; // _id do MongoDB
 
     if (!plate || !brand || !model || !type || !color) {
         showToast('Por favor, preencha todos os campos do veículo para salvar.', 'error');
@@ -432,82 +527,81 @@ function saveVehicle() {
         return;
     }
 
-    // Filtra veículos do usuário atual para verificar duplicidade
-    const userVehicles = vehicles.filter(v => v.userId === currentUserId);
-    const plateExistsForUser = userVehicles.some(v => v.plate.toUpperCase() === plate.toUpperCase() && v.id != vehicleIdToEdit);
-    if (plateExistsForUser) {
-        showToast('Esta placa já está cadastrada para um veículo seu.', 'error');
-        return;
-    }
+    showLoading();
 
-    if (vehicleIdToEdit) {
-        const vehicleIndex = vehicles.findIndex(v => v.id == vehicleIdToEdit);
-        if (vehicleIndex !== -1) {
-            // Garante que a edição é do carro do usuário logado
-            if (vehicles[vehicleIndex].userId !== currentUserId) {
-                showToast('Você não tem permissão para editar este veículo.', 'error');
-                return;
-            }
-            vehicles[vehicleIndex] = {
-                ...vehicles[vehicleIndex], // Mantém userId existente e outras propriedades
-                plate: plate.toUpperCase().replace(/\s/g, ''),
-                brand,
-                model,
-                type,
-                color
-            };
-            showToast('Veículo atualizado com sucesso!', 'success');
-        } else {
-            showToast('Erro: Veículo não encontrado para atualização.', 'error');
-            return;
-        }
-    } else {
-        const vehicle = {
-            id: Date.now(),
-            userId: currentUserId, // Associa o veículo ao ID do usuário logado
+    try {
+        let response;
+        let method;
+        let url;
+        let vehicleData = {
+            // userId: currentUserId, // Backend vai usar o ID do token, não precisa enviar
             plate: plate.toUpperCase().replace(/\s/g, ''),
             brand,
             model,
             type,
             color
         };
-        vehicles.push(vehicle);
-        showToast('Veículo adicionado com sucesso!', 'success');
-    }
 
-    localStorage.setItem('vehicles', JSON.stringify(vehicles));
-    populateVehicleSelect(); // Repopula o select apenas com carros do usuário atual
-    loadUserData(); // Recarrega a lista de veículos na sidebar apenas com carros do usuário atual
-
-    document.getElementById('vehicleForm').style.display = 'none';
-    document.querySelectorAll('#vehicleForm input, #vehicleForm select').forEach(input => {
-        input.value = '';
-    });
-    document.getElementById('vehicleIdToEdit').value = '';
-
-    if (!vehicleIdToEdit) {
-        // Após adicionar, selecione o novo veículo na lista do usuário
-        const userVehiclesAfterAdd = vehicles.filter(v => v.userId === currentUserId);
-        if (userVehiclesAfterAdd.length > 0) {
-             document.getElementById('vehicleSelect').value = userVehiclesAfterAdd[userVehiclesAfterAdd.length - 1].id;
+        if (vehicleIdToEdit) {
+            method = 'PUT';
+            url = `http://localhost:5000/api/vehicles/${vehicleIdToEdit}`;
+        } else {
+            method = 'POST';
+            url = 'http://localhost:5000/api/vehicles';
         }
-    } else {
-        document.getElementById('vehicleSelect').value = vehicleIdToEdit;
+
+        response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUserToken}`
+            },
+            body: JSON.stringify(vehicleData),
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            showToast(data.message || (vehicleIdToEdit ? 'Veículo atualizado com sucesso!' : 'Veículo adicionado com sucesso!'), 'success');
+            
+            await loadUserData(); // Recarrega veículos e agendamentos (pois um veículo pode ter sido adicionado/editado)
+            populateVehicleSelect(); // Repopula o select com os veículos atualizados
+
+            document.getElementById('vehicleForm').style.display = 'none';
+            document.querySelectorAll('#vehicleForm input, #vehicleForm select').forEach(input => {
+                input.value = '';
+            });
+            document.getElementById('vehicleIdToEdit').value = '';
+
+            // Após adicionar, selecione o novo veículo na lista do usuário
+            if (!vehicleIdToEdit && data.vehicle && data.vehicle._id) {
+                 document.getElementById('vehicleSelect').value = data.vehicle._id;
+            } else if (vehicleIdToEdit) { // Se foi edição, re-seleciona
+                 document.getElementById('vehicleSelect').value = vehicleIdToEdit;
+            }
+
+        } else {
+            showToast(data.message || 'Erro ao salvar veículo.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro de rede ou servidor ao salvar veículo:', error);
+        showToast('Erro de conexão ao salvar veículo.', 'error');
     }
 }
 
+// FUNÇÃO ATUALIZADA: populateVehicleSelect
 function populateVehicleSelect() {
     const vehicleSelect = document.getElementById('vehicleSelect');
     if (!vehicleSelect) return;
 
     vehicleSelect.innerHTML = '<option value="">Selecione um veículo</option>';
 
-    // Filtra veículos para mostrar apenas os do usuário logado
-    const userVehicles = vehicles.filter(v => v.userId === currentUserId);
-
-    userVehicles.forEach(vehicle => {
+    // 'vehicles' global já está filtrado e populado por loadUserData()
+    vehicles.forEach(vehicle => {
         const option = document.createElement('option');
-        option.value = vehicle.id;
+        option.value = vehicle._id; // Usar o _id do MongoDB
         option.textContent = `${vehicle.brand} ${vehicle.model} - ${vehicle.plate}`;
         vehicleSelect.appendChild(option);
     });
@@ -569,19 +663,16 @@ function selectTimeSlot(element, time) {
     selectedTimeSlot = time;
 }
 
+// FUNÇÃO ATUALIZADA: isTimeSlotUnavailable
 function isTimeSlotUnavailable(date, time) {
-    // Apenas agendamentos do currentUserId devem impactar a disponibilidade para ele mesmo
-    // ou você pode querer que todos os agendamentos ocupem o slot globalmente.
-    // Para este caso, vamos assumir que um slot ocupado por QUALQUER cliente está indisponível.
+    // Agora verifica os agendamentos carregados do backend
     return appointments.some(appointment =>
-        appointment.date === date && appointment.time === time
+        appointment.date === date && appointment.time === time && appointment.status !== 'cancelled' && appointment.status !== 'completed'
     );
 }
 
 function updateSummary() {
-    // Obter veículos do usuário atual para resumo
-    const userVehicles = vehicles.filter(v => v.userId === currentUserId);
-    const vehicle = userVehicles.find(v => v.id == document.getElementById('vehicleSelect')?.value);
+    const vehicle = vehicles.find(v => v._id == document.getElementById('vehicleSelect')?.value);
     const date = document.getElementById('bookingDate')?.value;
 
     if (currentService) {
@@ -595,12 +686,8 @@ function updateSummary() {
         vehicle ? `${vehicle.brand} ${vehicle.model} - ${vehicle.plate}` : '-';
 }
 
-function formatDate(dateString) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function handleBookingSubmit(e) {
+// FUNÇÃO ATUALIZADA: handleBookingSubmit
+async function handleBookingSubmit(e) {
     e.preventDefault();
 
     if (currentStep < 3) {
@@ -609,13 +696,16 @@ function handleBookingSubmit(e) {
     }
 
     if (!validateStep(2)) return;
+    if (!checkUserLogin() || !currentUserId) {
+        showToast('Você precisa estar logado para agendar um serviço.', 'error');
+        redirectToLogin();
+        return;
+    }
 
     showLoading();
 
-    // Obter veículos do usuário atual
-    const userVehicles = vehicles.filter(v => v.userId === currentUserId);
     const selectedVehicleId = document.getElementById('vehicleSelect').value;
-    const vehicle = userVehicles.find(v => v.id == selectedVehicleId); // Encontra o veículo na lista filtrada
+    const vehicle = vehicles.find(v => v._id === selectedVehicleId);
 
     if (!vehicle) {
         showToast('Erro: Veículo selecionado não encontrado ou não pertence a você.', 'error');
@@ -623,141 +713,202 @@ function handleBookingSubmit(e) {
         return;
     }
 
-    const appointment = {
-        id: Date.now(),
-        serviceId: currentService.id,
+    const appointmentData = {
+        serviceId: currentService._id, // O ID do serviço agora é _id do MongoDB
         value: currentService.price,
-        clientId: currentUserId, // Associa o agendamento ao ID do cliente logado
-        vehicle: { // Salva uma cópia dos dados essenciais do veículo para o agendamento
-            id: vehicle.id,
-            brand: vehicle.brand,
-            model: vehicle.model,
-            plate: vehicle.plate,
-            type: vehicle.type,
-            color: vehicle.color
-        },
+        vehicleId: vehicle._id, // Passar apenas o _id do veículo
         date: document.getElementById('bookingDate').value,
         time: selectedTimeSlot,
-        status: 'confirmed',
-        createdAt: new Date().toISOString()
+        status: 'scheduled', // Status inicial
     };
 
-    setTimeout(() => {
-        appointments.push(appointment);
-        localStorage.setItem('appointments', JSON.stringify(appointments));
+    try {
+        const response = await fetch('http://localhost:5000/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUserToken}`
+            },
+            body: JSON.stringify(appointmentData),
+        });
 
+        const data = await response.json();
         hideLoading();
-        closeBookingModal();
-        showToast('Agendamento realizado com sucesso!', 'success');
 
-        loadUserData();
-        generateTimeSlots();
-    }, 2000);
+        if (response.ok) {
+            showToast('Agendamento realizado com sucesso!', 'success');
+            closeBookingModal();
+            await loadUserData(); // Recarrega agendamentos e veículos
+            generateTimeSlots(); // Recarrega slots de tempo para refletir o novo agendamento
+        } else {
+            showToast(data.message || 'Erro ao agendar serviço.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro de rede ou servidor ao agendar:', error);
+        showToast('Erro de conexão ao agendar serviço.', 'error');
+    }
 }
 
-function loadUserData() {
+// FUNÇÃO ATUALIZADA: loadUserData
+async function loadUserData() {
     const profileNameElem = document.getElementById('userName');
     const profileEmailElem = document.getElementById('userEmail');
     const profilePhoneElem = document.getElementById('userPhone');
 
-    if (profileNameElem) {
-        profileNameElem.textContent = userName;
-    }
-    if (profileEmailElem) {
-        profileEmailElem.textContent = userEmail;
-    }
-    if (profilePhoneElem) {
-        profilePhoneElem.textContent = userPhone || 'Não informado';
-    }
+    if (profileNameElem) profileNameElem.textContent = userName;
+    if (profileEmailElem) profileEmailElem.textContent = userEmail;
+    if (profilePhoneElem) profilePhoneElem.textContent = userPhone || 'Não informado';
 
     const appointmentsList = document.getElementById('appointmentsList');
-    if (appointmentsList) {
-        // Filtra agendamentos para mostrar apenas os do usuário logado
-        const currentUserAppointments = appointments.filter(a => a.clientId === currentUserId);
-        
-        const allServices = JSON.parse(localStorage.getItem('services')) || [];
+    const vehiclesList = document.getElementById('vehiclesList');
 
-        if (currentUserAppointments.length === 0) {
-            appointmentsList.innerHTML = '<p class="no-data">Nenhum agendamento encontrado</p>';
-        } else {
-            currentUserAppointments.sort((a, b) => new Date(a.date) - new Date(b.date) || a.time.localeCompare(b.time));
-            appointmentsList.innerHTML = currentUserAppointments.map(appointment => {
-                const serviceDetail = allServices.find(s => s.id === appointment.serviceId);
-                const serviceName = serviceDetail ? serviceDetail.name : 'Serviço não encontrado';
-                const servicePrice = serviceDetail ? serviceDetail.price : appointment.value;
-
-                // Informações do veículo já estão salvas dentro do objeto 'appointment.vehicle'
-                const vehicleDisplay = appointment.vehicle ? `${appointment.vehicle.brand} ${appointment.vehicle.model} - ${appointment.vehicle.plate}` : 'Veículo não encontrado';
-
-                return `
-                    <div class="appointment-card">
-                        <h5>${serviceName}</h5>
-                        <p><i class="fas fa-calendar"></i> ${formatDate(appointment.date)} às ${appointment.time}</p>
-                        <p><i class="fas fa-car"></i> ${vehicleDisplay}</p>
-                        <p><i class="fas fa-dollar-sign"></i> R$ ${servicePrice.toFixed(2)}</p>
-                        <button class="cancel-btn" onclick="cancelAppointment(${appointment.id})">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
+    if (!checkUserLogin()) {
+        if (appointmentsList) appointmentsList.innerHTML = '<p class="no-data">Faça login para ver seus agendamentos</p>';
+        if (vehiclesList) vehiclesList.innerHTML = '<p class="no-data">Faça login para ver seus veículos</p>';
+        return;
     }
 
-    const vehiclesList = document.getElementById('vehiclesList');
-    if (vehiclesList) {
-        // Filtra veículos para mostrar apenas os do usuário logado
-        const userVehicles = vehicles.filter(v => v.userId === currentUserId);
+    showLoading();
+    try {
+        // Carregar veículos do backend para o usuário logado
+        const vehiclesResponse = await fetch(`http://localhost:5000/api/vehicles/user/${currentUserId}`, {
+            headers: {
+                'Authorization': `Bearer ${currentUserToken}`
+            }
+        });
+        const userVehicles = await vehiclesResponse.json();
 
-        if (userVehicles.length === 0) {
-            vehiclesList.innerHTML = '<p class="no-data">Nenhum veículo cadastrado</p>';
+        if (vehiclesResponse.ok) {
+            vehicles = userVehicles; // Atualiza a variável global 'vehicles'
+            if (vehiclesList) {
+                if (userVehicles.length === 0) {
+                    vehiclesList.innerHTML = '<p class="no-data">Nenhum veículo cadastrado</p>';
+                } else {
+                    vehiclesList.innerHTML = userVehicles.map(vehicle => `
+                        <div class="vehicle-card">
+                            <h5>${vehicle.brand} ${vehicle.model}</h5>
+                            <p><strong>Placa:</strong> ${vehicle.plate}</p>
+                            <p><strong>Tipo:</strong> ${vehicle.type}</p>
+                            <p><strong>Cor:</strong> ${vehicle.color}</p>
+                            <button class="edit-btn" onclick="editVehicle('${vehicle._id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-vehicle-btn" onclick="deleteVehicle('${vehicle._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            }
         } else {
-            vehiclesList.innerHTML = userVehicles.map(vehicle => `
-                <div class="vehicle-card">
-                    <h5>${vehicle.brand} ${vehicle.model}</h5>
-                    <p><strong>Placa:</strong> ${vehicle.plate}</p>
-                    <p><strong>Tipo:</strong> ${vehicle.type}</p>
-                    <p><strong>Cor:</strong> ${vehicle.color}</p>
-                    <button class="edit-btn" onclick="editVehicle(${vehicle.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="delete-vehicle-btn" onclick="deleteVehicle(${vehicle.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `).join('');
+            showToast(userVehicles.message || 'Erro ao carregar veículos.', 'error');
+            if (vehiclesList) vehiclesList.innerHTML = '<p class="no-data">Erro ao carregar veículos.</p>';
         }
+
+        // Carregar agendamentos do backend para o usuário logado
+        const appointmentsResponse = await fetch(`http://localhost:5000/api/appointments/user/${currentUserId}`, {
+            headers: {
+                'Authorization': `Bearer ${currentUserToken}`
+            }
+        });
+        const currentUserAppointments = await appointmentsResponse.json();
+
+        if (appointmentsResponse.ok) {
+            appointments = currentUserAppointments; // Atualiza a variável global 'appointments'
+            if (appointmentsList) {
+                if (currentUserAppointments.length === 0) {
+                    appointmentsList.innerHTML = '<p class="no-data">Nenhum agendamento encontrado</p>';
+                } else {
+                    // Filtrar agendamentos que não são cancelled ou completed para 'Meus Agendamentos'
+                    const activeAppointments = currentUserAppointments.filter(a => a.status !== 'cancelled' && a.status !== 'completed');
+                    
+                    activeAppointments.sort((a, b) => new Date(a.date) - new Date(b.date) || a.time.localeCompare(b.time));
+                    appointmentsList.innerHTML = activeAppointments.map(appointment => {
+                        // services global já deve estar populado por loadServicesFromBackend()
+                        const serviceDetail = services.find(s => s._id === appointment.serviceId) || {name: 'Serviço não encontrado', price: appointment.value};
+                        const serviceName = serviceDetail.name;
+                        const servicePrice = serviceDetail.price;
+
+                        const vehicleDisplay = appointment.vehicle ? `${appointment.vehicle.brand} ${appointment.vehicle.model} - ${appointment.vehicle.plate}` : 'Veículo não encontrado';
+
+                        return `
+                            <div class="appointment-card">
+                                <h5>${serviceName}</h5>
+                                <p><i class="fas fa-calendar"></i> ${formatDate(appointment.date)} às ${appointment.time}</p>
+                                <p><i class="fas fa-car"></i> ${vehicleDisplay}</p>
+                                <p><i class="fas fa-dollar-sign"></i> R$ ${servicePrice.toFixed(2)}</p>
+                                <button class="cancel-btn" onclick="cancelAppointment('${appointment._id}')">
+                                    <i class="fas fa-times"></i>
+                                    Cancelar
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        } else {
+            showToast(currentUserAppointments.message || 'Erro ao carregar agendamentos.', 'error');
+            if (appointmentsList) appointmentsList.innerHTML = '<p class="no-data">Erro ao carregar agendamentos.</p>';
+        }
+    } catch (error) {
+        showToast('Erro de conexão ao carregar dados do usuário.', 'error');
+        console.error('Erro ao buscar dados do usuário (veículos/agendamentos):', error);
+    } finally {
+        hideLoading();
     }
 }
 
-function cancelAppointment(appointmentId) {
-    if (!checkUserLogin()) {
+// FUNÇÃO ATUALIZADA: cancelAppointment
+async function cancelAppointment(appointmentId) {
+    if (!checkUserLogin() || !currentUserId) {
         redirectToLogin();
         return;
     }
 
     if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
-        appointments = appointments.filter(a => a.id !== appointmentId);
-        localStorage.setItem('appointments', JSON.stringify(appointments));
-        loadUserData();
-        generateTimeSlots();
-        showToast('Agendamento cancelado com sucesso!', 'success');
+        showLoading();
+        try {
+            const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentUserToken}`
+                },
+                body: JSON.stringify({ status: 'cancelled' })
+            });
+
+            const data = await response.json();
+            hideLoading();
+
+            if (response.ok) {
+                showToast(data.message || 'Agendamento cancelado com sucesso!', 'success');
+                await loadUserData(); // Recarrega para atualizar a lista
+                generateTimeSlots(); // Recarrega slots de tempo
+            } else {
+                showToast(data.message || 'Erro ao cancelar agendamento.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro de rede ou servidor ao cancelar agendamento:', error);
+            showToast('Erro de conexão ao cancelar agendamento.', 'error');
+        }
     }
 }
 
-function editVehicle(vehicleId) {
+// FUNÇÃO ATUALIZADA: editVehicle
+async function editVehicle(vehicleId) { // vehicleId agora é o _id do MongoDB
     if (!checkUserLogin()) {
         redirectToLogin();
         return;
     }
 
-    const vehicle = vehicles.find(v => v.id === vehicleId);
+    const vehicle = vehicles.find(v => v._id === vehicleId); // Buscar pelo _id
     if (!vehicle) {
         showToast('Veículo não encontrado.', 'error');
         return;
     }
-    // Garante que a edição é do carro do usuário logado
+    // Garante que a edição é do carro do usuário logado (pode ser o ID ou o _id)
     if (vehicle.userId !== currentUserId) {
         showToast('Você não tem permissão para editar este veículo.', 'error');
         return;
@@ -773,7 +924,7 @@ function editVehicle(vehicleId) {
     document.getElementById('vehicleModel').value = vehicle.model;
     document.getElementById('vehicleType').value = vehicle.type;
     document.getElementById('vehicleColor').value = vehicle.color;
-    document.getElementById('vehicleIdToEdit').value = vehicle.id;
+    document.getElementById('vehicleIdToEdit').value = vehicle._id; // Salvar o _id para edição
 
     document.getElementById('vehicleSelect').value = '';
 
@@ -785,122 +936,135 @@ function editVehicle(vehicleId) {
     showToast('Edite as informações do veículo e salve.', 'info');
 }
 
-function deleteVehicle(vehicleId) {
-    if (!checkUserLogin()) {
+// FUNÇÃO ATUALIZADA: deleteVehicle
+async function deleteVehicle(vehicleId) { // vehicleId agora é o _id do MongoDB
+    if (!checkUserLogin() || !currentUserId) {
         redirectToLogin();
         return;
     }
 
     // Garante que a exclusão é do carro do usuário logado
-    const vehicleToDelete = vehicles.find(v => v.id === vehicleId);
+    const vehicleToDelete = vehicles.find(v => v._id === vehicleId);
     if (!vehicleToDelete || vehicleToDelete.userId !== currentUserId) {
         showToast('Você não tem permissão para excluir este veículo.', 'error');
         return;
     }
 
     if (confirm('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.')) {
-        vehicles = vehicles.filter(v => v.id !== vehicleId);
-        localStorage.setItem('vehicles', JSON.stringify(vehicles));
+        showLoading();
+        try {
+            const response = await fetch(`http://localhost:5000/api/vehicles/${vehicleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${currentUserToken}`
+                }
+            });
 
-        appointments = appointments.filter(a => a.vehicle.id !== vehicleId); // Excluir agendamentos associados
-        localStorage.setItem('appointments', JSON.stringify(appointments));
+            const data = await response.json();
+            hideLoading();
 
-        loadUserData();
-        populateVehicleSelect();
-        showToast('Veículo excluído com sucesso!', 'success');
+            if (response.ok) {
+                showToast(data.message || 'Veículo excluído com sucesso!', 'success');
+                await loadUserData(); // Recarrega para atualizar listas
+                populateVehicleSelect(); // Atualiza o select de veículos
+                generateTimeSlots(); // Pode afetar a disponibilidade
+            } else {
+                showToast(data.message || 'Erro ao excluir veículo.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro de rede ou servidor ao excluir veículo:', error);
+            showToast('Erro de conexão ao excluir veículo.', 'error');
+        }
     }
 }
 
-function showHistory() {
+// FUNÇÃO ATUALIZADA: showHistory
+async function showHistory() {
     const historyModal = document.getElementById('historyModal');
     if (historyModal) {
         historyModal.classList.add('active');
-        loadHistoryData();
+        await loadHistoryData(); // Chame assincronamente
     }
 }
 
-function closeHistory() {
-    const historyModal = document.getElementById('historyModal');
-    if (historyModal) {
-        historyModal.classList.remove('active');
-    }
-}
-
-function loadHistoryData() {
+// FUNÇÃO ATUALIZADA: loadHistoryData
+async function loadHistoryData() {
     const historyList = document.getElementById('historyList');
     if (!historyList) return;
 
-    const allServices = JSON.parse(localStorage.getItem('services')) || [];
-    const allRegisteredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-    const currentUserData = allRegisteredUsers.find(user => user.email === userEmail);
-    const userAppointmentsHistory = appointments.filter(a => a.clientId === currentUserData?.id);
-
-
-    if (userAppointmentsHistory.length === 0) {
-        historyList.innerHTML = '<p class="no-data">Nenhum histórico de agendamento encontrado</p>';
-    } else {
-        userAppointmentsHistory.sort((a, b) => new Date(b.date) - new Date(a.date) || b.time.localeCompare(a.time));
-        historyList.innerHTML = userAppointmentsHistory.map(appointment => {
-            const serviceDetail = allServices.find(s => s.id === appointment.serviceId);
-            const serviceName = serviceDetail ? serviceDetail.name : 'Serviço não encontrado';
-            const servicePrice = serviceDetail ? serviceDetail.price : appointment.value;
-            const vehicleDisplay = appointment.vehicle ? `${appointment.vehicle.brand} ${appointment.vehicle.model} - ${appointment.vehicle.plate}` : 'Veículo não encontrado';
-
-            return `
-                <div class="history-item">
-                    <h5>${serviceName}</h5>
-                    <p><i class="fas fa-calendar"></i> ${formatDate(appointment.date)} às ${appointment.time}</p>
-                    <p><i class="fas fa-car"></i> ${vehicleDisplay}</p>
-                    <p><i class="fas fa-dollar-sign"></i> R$ ${servicePrice.toFixed(2)}</p>
-                    <span class="status confirmed">Confirmado</span>
-                </div>
-            `;
-        }).join('');
+    if (!checkUserLogin() || !currentUserId) {
+        historyList.innerHTML = '<p class="no-data">Faça login para ver seu histórico</p>';
+        return;
     }
-}
 
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
-    `;
+    showLoading();
+    try {
+        // Carrega TODOS os agendamentos do usuário (incluindo cancelados/completos)
+        const response = await fetch(`http://localhost:5000/api/appointments/user/${currentUserId}`, {
+            headers: {
+                'Authorization': `Bearer ${currentUserToken}`
+            }
+        });
+        const currentUserAppointments = await response.json();
+        hideLoading();
 
-    Object.assign(toast.style, {
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        background: type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#2563eb',
-        color: 'white',
-        padding: '15px 20px',
-        borderRadius: '10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        zIndex: '10000',
-        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-        transform: 'translateX(100%)',
-        transition: 'transform 0.3s ease'
-    });
+        if (response.ok) {
+            // Filtra agendamentos para o histórico (AGORA INCLUINDO TODOS OS STATUS POR PADRÃO, A MENOS QUE MODIFICADO)
+            // Para mostrar *todos* os agendamentos do usuário no histórico, use:
+            const historyAppointments = currentUserAppointments; 
+            
+            // Se você quiser filtrar APENAS "cancelled" e "completed" ou outros, use a linha abaixo:
+            // const historyAppointments = currentUserAppointments.filter(a => a.status === 'cancelled' || a.status === 'completed');
+            // Ou para mostrar todos (ativos e históricos):
+            // const historyAppointments = currentUserAppointments.filter(a => a.status === 'cancelled' || a.status === 'completed' || a.status === 'scheduled' || a.status === 'confirmed');
 
-    document.body.appendChild(toast);
+            if (historyAppointments.length === 0) {
+                historyList.innerHTML = '<p class="no-data">Nenhum histórico de agendamento encontrado</p>';
+            } else {
+                // Ordena por data mais recente primeiro
+                historyAppointments.sort((a, b) => new Date(b.date) - new Date(a.date) || b.time.localeCompare(b.time));
+                historyList.innerHTML = historyAppointments.map(appointment => {
+                    // services global já deve estar populado por loadServicesFromBackend()
+                    const serviceDetail = services.find(s => s._id === appointment.serviceId) || {name: 'Serviço não encontrado', price: appointment.value};
+                    const serviceName = serviceDetail.name;
+                    const servicePrice = serviceDetail.price;
+                    const vehicleDisplay = appointment.vehicle ? `${appointment.vehicle.brand} ${appointment.vehicle.model} - ${appointment.vehicle.plate}` : 'Veículo não encontrado';
 
-    setTimeout(() => {
-        toast.style.transform = 'translateX(0)';
-    }, 100);
+                    // Mapeia o status do backend para o texto/classe do frontend
+                    const statusText = {
+                        'scheduled': 'Agendado',
+                        'confirmed': 'Confirmado',
+                        'completed': 'Concluído',
+                        'cancelled': 'Cancelado'
+                    }[appointment.status] || appointment.status;
 
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 300);
-    }, 3000);
+                    return `
+                        <div class="history-item">
+                            <h5>${serviceName}</h5>
+                            <p><i class="fas fa-calendar"></i> ${formatDate(appointment.date)} às ${appointment.time}</p>
+                            <p><i class="fas fa-car"></i> ${vehicleDisplay}</p>
+                            <p><i class="fas fa-dollar-sign"></i> R$ ${servicePrice.toFixed(2)}</p>
+                            <span class="status ${appointment.status}">${statusText}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } else {
+                showToast(currentUserAppointments.message || 'Erro ao carregar histórico.', 'error');
+                historyList.innerHTML = '<p class="no-data">Erro ao carregar histórico.</p>';
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao buscar histórico:', error);
+        historyList.innerHTML = '<p class="no-data">Erro de conexão ao carregar histórico.</p>';
+    }
 }
 
 function logout() {
     if (confirm('Tem certeza que deseja sair?')) {
         localStorage.removeItem('userLoggedIn');
+        localStorage.removeItem('userToken');
         localStorage.removeItem('userName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userPhone');
@@ -909,6 +1073,8 @@ function logout() {
         userName = 'Convidado';
         userEmail = '';
         userPhone = '';
+        currentUserToken = null;
+        currentUserId = null;
         showLoading();
         setTimeout(() => {
             window.location.href = 'register.html';
@@ -916,6 +1082,7 @@ function logout() {
     }
 }
 
+// Event listeners para navegação suave e menu mobile
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();

@@ -1,35 +1,23 @@
-// Global Data Storage
-// Load from localStorage or use default if empty
-let appointments = JSON.parse(localStorage.getItem('appointments')) || [
-    { id: 1, clientId: 1, serviceId: 1, date: '2024-03-15', time: '14:30', value: 150.00, status: 'scheduled' },
-    { id: 2, clientId: 2, serviceId: 2, date: '2024-03-15', time: '16:00', value: 280.00, status: 'confirmed' },
-    { id: 3, clientId: 3, serviceId: 3, date: '2024-03-16', time: '09:00', value: 400.00, status: 'completed' },
-    { id: 4, clientId: 1, serviceId: 4, date: '2024-03-16', time: '11:30', value: 200.00, status: 'cancelled' }
-];
-if (!localStorage.getItem('appointments')) {
-    localStorage.setItem('appointments', JSON.stringify(appointments));
-}
+// admin.js
 
+// REMOVER OU COMENTAR TODAS AS VARIÁVEIS GLOBAIS DE DADOS INICIAIS DO localStorage
+// let appointments = JSON.parse(localStorage.getItem('appointments')) || [...];
+// let services = JSON.parse(localStorage.getItem('services')) || [...];
+// let clients = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+// let vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
 
-let services = JSON.parse(localStorage.getItem('services')) || [
-    { id: 1, name: 'Lavagem Completa', price: 150.00, duration: 60, description: 'Limpeza completa interna e externa do veículo' },
-    { id: 2, name: 'Polimento', price: 280.00, duration: 120, description: 'Polimento profissional para remover riscos' },
-    { id: 3, name: 'Cristalização', price: 400.00, duration: 180, description: 'Proteção duradoura da pintura' },
-    { id: 4, name: 'Higienização', price: 200.00, duration: 90, description: 'Limpeza profunda de estofados' }
-];
-if (!localStorage.getItem('services')) {
-    localStorage.setItem('services', JSON.stringify(services));
-}
+// Adicionar variáveis para armazenar dados carregados do backend
+let currentAppointments = [];
+let currentServices = [];
+let currentClients = [];
+let currentVehicles = [];
 
-// **ALTERAÇÃO AQUI:** Carregar clientes APENAS do 'registeredUsers' do localStorage.
-// Se não houver, será um array vazio, sem clientes fictícios.
-let clients = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+// Obter o token e dados do admin do localStorage
+const ADMIN_TOKEN = localStorage.getItem('adminToken') || null;
+const ADMIN_ID = localStorage.getItem('adminId') || null; // Novo: ID do admin
+const ADMIN_NAME = localStorage.getItem('adminName') || 'Administrador';
 
-// Também carregar os veículos para exibir na coluna 'Veículo'
-let vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
-
-
-// Utility Functions
+// --- Utility Functions (manter existentes, ajustar getServiceName para _id se necessário) ---
 function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -54,42 +42,91 @@ function getStatusBadge(status) {
 }
 
 function getClientName(clientId) {
-    const client = clients.find(c => c.id === clientId);
+    const client = currentClients.find(c => c._id === clientId); // Buscar por _id
     return client ? client.name : 'Cliente não encontrado';
 }
 
-// Nova função para obter a marca e modelo do veículo
-function getVehicleInfo(vehicleId, plate) {
-    // A propriedade 'vehicle' no objeto appointment em service.js é o objeto completo do veículo.
-    // Então, podemos tentar encontrar pelo ID do objeto completo do veículo salvo,
-    // ou, se a estrutura mudar, pelo plate.
-    const vehicle = vehicles.find(v => v.id === vehicleId || v.plate === plate); // Ajuste a busca se o ID do veículo for inconsistente
+function getVehicleInfo(vehicleId) { // Agora passamos apenas o _id do veículo
+    const vehicle = currentVehicles.find(v => v._id === vehicleId); // Buscar por _id
     return vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Veículo não encontrado';
 }
 
-
-function getServiceName(serviceId) {
-    const service = services.find(s => s.id === serviceId);
+function getServiceName(serviceId) { // Assumindo que serviceId no agendamento é um ID numérico.
+                                    // Se você migrar serviços para _id, mude currentServices.find(s => s.id === serviceId) para s._id
+    const service = currentServices.find(s => s._id === serviceId); // Buscando pelo _id do MongoDB, conforme alteramos o model Appointment
     return service ? service.name : 'Serviço não encontrado';
 }
 
-// Navigation Functions
+// --- Loading Overlay Functions (reutilizadas do service.js/register.js) ---
+function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.remove('d-none');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('d-none');
+        loadingOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+
+    Object.assign(toast.style, {
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        background: type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#2563eb',
+        color: 'white',
+        padding: '15px 20px',
+        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        zIndex: '10000',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+        transform: 'translateX(100%)',
+        transition: 'transform 0.3s ease'
+    });
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+
+// --- Navigation Functions (manter, mas load functions agora são async) ---
 function showSection(sectionId) {
-    // Hide all sections
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
     });
-
-    // Show selected section
     document.getElementById(sectionId).classList.add('active');
-
-    // Update navigation
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
     document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
 
-    // Update page title
     const titles = {
         'dashboard': 'Dashboard',
         'appointments': 'Agendamentos',
@@ -99,7 +136,7 @@ function showSection(sectionId) {
     };
     document.getElementById('pageTitle').textContent = titles[sectionId] || 'Dashboard';
 
-    // Load section data
+    // Carregar dados da seção (agora assíncronas)
     switch(sectionId) {
         case 'appointments':
             loadAppointments();
@@ -110,10 +147,13 @@ function showSection(sectionId) {
         case 'clients':
             loadClients();
             break;
+        case 'dashboard':
+            updateDashboard();
+            break;
     }
 }
 
-// Modal Functions
+// --- Modal Functions (manter) ---
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -124,59 +164,77 @@ function closeModal(modalId) {
     document.body.style.overflow = '';
 }
 
-// Appointments Functions
-function loadAppointments() {
+// --- Appointments Functions (AGORA INTERAGEM COM O BACKEND) ---
+async function loadAppointments() {
     const tbody = document.getElementById('appointmentsTable');
-    tbody.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Carregando agendamentos...</td></tr>';
 
-    // Re-carrega clientes, serviços e veículos do localStorage para garantir que estejam atualizados
-    clients = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-    services = JSON.parse(localStorage.getItem('services')) || [];
-    appointments = JSON.parse(localStorage.getItem('appointments')) || [];
-    vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
+    try {
+        // Carregar clientes, veículos e serviços ANTES dos agendamentos para mapeamento
+        await loadClientsFromBackend();
+        await loadVehiclesFromBackend(); // Carrega todos os veículos (admin view)
+        await loadServicesFromBackend();
 
+        const response = await fetch('http://localhost:5000/api/appointments', {
+            headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+        });
+        const data = await response.json();
 
-    appointments.forEach(appointment => {
-        // Encontra o cliente e o serviço com base nos IDs salvos no agendamento
-        const clientName = getClientName(appointment.clientId);
-        const serviceName = getServiceName(appointment.serviceId);
-        const serviceValue = serviceName !== 'Serviço não encontrado' ? services.find(s => s.id === appointment.serviceId).price : (appointment.value || 'N/A');
-        
-        // Obter informações do veículo. O appointment.vehicle agora é o objeto completo do veículo.
-        const vehicleInfo = appointment.vehicle ? getVehicleInfo(appointment.vehicle.id, appointment.vehicle.plate) : 'Veículo não encontrado';
+        if (response.ok) {
+            currentAppointments = data; // Armazena os agendamentos na variável global
+            tbody.innerHTML = ''; // Limpa a mensagem de carregamento
 
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td data-label="ID">${appointment.id}</td>
-            <td data-label="Cliente">${clientName}</td>
-            <td data-label="Veículo">${vehicleInfo}</td>
-            <td data-label="Serviço">${serviceName}</td>
-            <td data-label="Data">${formatDate(appointment.date)}</td>
-            <td data-label="Horário">${appointment.time}</td>
-            <td data-label="Valor">${formatCurrency(serviceValue)}</td>
-            <td data-label="Status">${getStatusBadge(appointment.status)}</td>
-            <td data-label="Ações">
-                <div class="action-buttons">
-                    <button class="action-btn edit-btn" onclick="editAppointment(${appointment.id})" title="Editar">
-                        <i class="fas fa-edit"></i> </button>
-                    <button class="action-btn delete-btn" onclick="deleteAppointment(${appointment.id})" title="Excluir">
-                        <i class="fas fa-trash"></i> </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
+            currentAppointments.forEach(appointment => {
+                const clientName = getClientName(appointment.client._id);
+                const vehicleInfo = getVehicleInfo(appointment.vehicle._id);
+                // serviceId agora é _id do MongoDB
+                const serviceName = getServiceName(appointment.serviceId);
+                const serviceDetail = currentServices.find(s => s._id === appointment.serviceId); // Buscar pelo _id
+                const serviceValue = serviceDetail ? serviceDetail.price : (appointment.value || 'N/A');
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td data-label="ID">${appointment._id}</td>
+                    <td data-label="Cliente">${clientName}</td>
+                    <td data-label="Veículo">${vehicleInfo}</td>
+                    <td data-label="Serviço">${serviceName}</td>
+                    <td data-label="Data">${formatDate(appointment.date)}</td>
+                    <td data-label="Horário">${appointment.time}</td>
+                    <td data-label="Valor">${formatCurrency(serviceValue)}</td>
+                    <td data-label="Status">${getStatusBadge(appointment.status)}</td>
+                    <td data-label="Ações">
+                        <div class="action-buttons">
+                            <button class="action-btn edit-btn" onclick="editAppointment('${appointment._id}')" title="Editar">
+                                <i class="fas fa-edit"></i> </button>
+                            <button class="action-btn delete-btn" onclick="deleteAppointment('${appointment._id}')" title="Excluir">
+                                <i class="fas fa-trash"></i> </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger);">Erro ao carregar agendamentos: ${data.message || 'Desconhecido'}</td></tr>`;
+        }
+    } catch (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger);">Erro de conexão ao carregar agendamentos.</td></tr>`;
+    }
 }
 
-function editAppointment(id) {
-    const appointment = appointments.find(a => a.id === id);
+async function editAppointment(id) {
+    const appointment = currentAppointments.find(a => a._id === id);
     if (!appointment) return;
 
     document.getElementById('appointmentModalTitle').textContent = 'Editar Agendamento';
-    document.getElementById('appointmentId').value = appointment.id;
-    document.getElementById('appointmentClient').value = appointment.clientId;
-    document.getElementById('appointmentService').value = appointment.serviceId;
+    document.getElementById('appointmentId').value = appointment._id;
+
+    await updateClientOptions(); // Popula o select de clientes
+    document.getElementById('appointmentClient').value = appointment.client._id;
+
+    await updateServiceOptions(); // Popula o select de serviços
+    document.getElementById('appointmentService').value = appointment.serviceId; // serviceId é _id
+
     document.getElementById('appointmentDate').value = appointment.date;
     document.getElementById('appointmentTime').value = appointment.time;
     document.getElementById('appointmentValue').value = appointment.value;
@@ -185,21 +243,38 @@ function editAppointment(id) {
     openModal('appointmentModal');
 }
 
-function deleteAppointment(id) {
+async function deleteAppointment(id) {
     if (confirm('Tem certeza que deseja excluir este agendamento?')) {
-        appointments = appointments.filter(a => a.id !== id);
-        localStorage.setItem('appointments', JSON.stringify(appointments)); // Save to localStorage
-        loadAppointments();
-        updateDashboard();
+        showLoading();
+        try {
+            const response = await fetch(`http://localhost:5000/api/appointments/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+            });
+            const data = await response.json();
+
+            hideLoading();
+            if (response.ok) {
+                showToast(data.message || 'Agendamento excluído com sucesso!', 'success');
+                loadAppointments(); // Recarregar
+                updateDashboard();
+            } else {
+                showToast(data.message || 'Erro ao excluir agendamento.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro ao excluir agendamento:', error);
+            showToast('Erro de conexão ao excluir agendamento.', 'error');
+        }
     }
 }
 
-function saveAppointment() {
+async function saveAppointment() {
     const form = document.getElementById('appointmentForm');
     
     const appointmentData = {
-        clientId: parseInt(document.getElementById('appointmentClient').value),
-        serviceId: parseInt(document.getElementById('appointmentService').value),
+        clientId: document.getElementById('appointmentClient').value,
+        serviceId: document.getElementById('appointmentService').value, // Agora é _id
         date: document.getElementById('appointmentDate').value,
         time: document.getElementById('appointmentTime').value,
         value: parseFloat(document.getElementById('appointmentValue').value),
@@ -208,63 +283,98 @@ function saveAppointment() {
 
     const id = document.getElementById('appointmentId').value;
     
-    if (id) {
-        // Edit existing appointment
-        const index = appointments.findIndex(a => a.id === parseInt(id));
-        if (index !== -1) {
-            appointments[index] = { ...appointmentData, id: parseInt(id) };
+    showLoading();
+
+    try {
+        let response;
+        let method;
+        let url;
+
+        if (id) {
+            method = 'PUT';
+            url = `http://localhost:5000/api/appointments/${id}`;
+        } else {
+            method = 'POST';
+            url = 'http://localhost:5000/api/appointments';
         }
-    } else {
-        // Add new appointment
-        const newId = Math.max(...appointments.map(a => a.id), 0) + 1;
-        appointments.push({ ...appointmentData, id: newId });
+
+        response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ADMIN_TOKEN}`
+            },
+            body: JSON.stringify(appointmentData),
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            showToast(data.message || 'Agendamento salvo com sucesso!', 'success');
+            closeModal('appointmentModal');
+            loadAppointments();
+            updateDashboard();
+            form.reset();
+        } else {
+            showToast(data.message || 'Erro ao salvar agendamento.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao salvar agendamento:', error);
+        showToast('Erro de conexão ao salvar agendamento.', 'error');
     }
-
-    localStorage.setItem('appointments', JSON.stringify(appointments));
-
-    closeModal('appointmentModal');
-    loadAppointments();
-    updateDashboard();
-    form.reset();
 }
 
-// Services Functions
-function loadServices() {
+// --- Services Functions (AGORA INTERAGEM COM O BACKEND) ---
+async function loadServices() {
     const container = document.getElementById('servicesGrid');
-    container.innerHTML = '';
+    container.innerHTML = '<div style="text-align: center; width: 100%;">Carregando serviços...</div>';
 
-    // Re-carrega serviços do localStorage para garantir que estejam atualizados
-    services = JSON.parse(localStorage.getItem('services')) || [];
+    try {
+        const response = await fetch('http://localhost:5000/api/services');
+        const data = await response.json();
 
-    services.forEach(service => {
-        const card = document.createElement('div');
-        card.className = 'service-card';
-        card.innerHTML = `
-            <div class="service-header">
-                <div class="service-info">
-                    <h3>${service.name}</h3>
-                    <div class="service-price">${formatCurrency(service.price)}</div>
-                </div>
-            </div>
-            <div class="service-body">
-                <p class="service-description">${service.description}</p>
-                <p><strong>Duração:</strong> ${service.duration} min</p>
-                <div class="service-actions">
-                    <button class="btn btn-secondary btn-sm" onclick="editService(${service.id})">Editar</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteService(${service.id})">Excluir</button>
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
-    });
+        if (response.ok) {
+            currentServices = data; // Armazena os serviços
+            container.innerHTML = ''; // Limpa a mensagem de carregamento
+
+            currentServices.forEach(service => {
+                const card = document.createElement('div');
+                card.className = 'service-card';
+                card.innerHTML = `
+                    <div class="service-header">
+                        <div class="service-info">
+                            <h3>${service.name}</h3>
+                            <div class="service-price">${formatCurrency(service.price)}</div>
+                        </div>
+                    </div>
+                    <div class="service-body">
+                        <p class="service-description">${service.description}</p>
+                        <p><strong>Duração:</strong> ${service.duration} min</p>
+                        <div class="service-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editService('${service._id}')">Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteService('${service._id}')">Excluir</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        } else {
+            container.innerHTML = `<div style="text-align: center; width: 100%; color: var(--danger);">Erro ao carregar serviços: ${data.message || 'Desconhecido'}</div>`;
+        }
+    } catch (error) {
+        console.error('Erro ao buscar serviços:', error);
+        container.innerHTML = `<div style="text-align: center; width: 100%; color: var(--danger);">Erro de conexão ao carregar serviços.</div>`;
+    }
 }
 
-function editService(id) {
-    const service = services.find(s => s.id === id);
+async function editService(id) {
+    const service = currentServices.find(s => s._id === id);
     if (!service) return;
 
     document.getElementById('serviceModalTitle').textContent = 'Editar Serviço';
-    document.getElementById('serviceId').value = service.id;
+    document.getElementById('serviceId').value = service._id;
     document.getElementById('serviceName').value = service.name;
     document.getElementById('servicePrice').value = service.price;
     document.getElementById('serviceDuration').value = service.duration;
@@ -273,165 +383,260 @@ function editService(id) {
     openModal('serviceModal');
 }
 
-function deleteService(id) {
+async function deleteService(id) {
     if (confirm('Tem certeza que deseja excluir este serviço?')) {
-        services = services.filter(s => s.id !== id);
-        localStorage.setItem('services', JSON.stringify(services));
-        loadServices();
-        updateServiceOptions();
+        showLoading();
+        try {
+            const response = await fetch(`http://localhost:5000/api/services/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+            });
+            const data = await response.json();
+
+            hideLoading();
+            if (response.ok) {
+                showToast(data.message || 'Serviço excluído com sucesso!', 'success');
+                loadServices();
+                updateServiceOptions();
+            } else {
+                showToast(data.message || 'Erro ao excluir serviço.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro ao excluir serviço:', error);
+            showToast('Erro de conexão ao excluir serviço.', 'error');
+        }
     }
 }
 
-function saveService() {
+async function saveService() {
     const serviceData = {
         name: document.getElementById('serviceName').value,
         price: parseFloat(document.getElementById('servicePrice').value),
         duration: parseInt(document.getElementById('serviceDuration').value),
-        description: document.getElementById('serviceDescription').value
+        description: document.getElementById('serviceDescription').value,
     };
 
     const id = document.getElementById('serviceId').value;
     
-    if (id) {
-        // Edit existing service
-        const index = services.findIndex(s => s.id === parseInt(id));
-        if (index !== -1) {
-            services[index] = { ...serviceData, id: parseInt(id) };
+    showLoading();
+
+    try {
+        let response;
+        let method;
+        let url;
+
+        if (id) {
+            method = 'PUT';
+            url = `http://localhost:5000/api/services/${id}`;
+        } else {
+            method = 'POST';
+            url = 'http://localhost:5000/api/services';
         }
-    } else {
-        // Add new service
-        const newId = Math.max(...services.map(s => s.id), 0) + 1;
-        services.push({ ...serviceData, id: newId });
+
+        response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${ADMIN_TOKEN}`
+            },
+            body: JSON.stringify(serviceData),
+        });
+
+        const data = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            showToast(data.message || 'Serviço salvo com sucesso!', 'success');
+            closeModal('serviceModal');
+            loadServices();
+            updateServiceOptions();
+            document.getElementById('serviceForm').reset();
+        } else {
+            showToast(data.message || 'Erro ao salvar serviço.', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao salvar serviço:', error);
+        showToast('Erro de conexão ao salvar serviço.', 'error');
     }
-
-    localStorage.setItem('services', JSON.stringify(services));
-
-    closeModal('serviceModal');
-    loadServices();
-    updateServiceOptions();
-    document.getElementById('serviceForm').reset();
 }
 
-// Clients Functions
-function loadClients() {
+// --- Clients Functions (AGORA INTERAGEM COM O BACKEND) ---
+async function loadClients() {
     const tbody = document.getElementById('clientsTable');
-    tbody.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando clientes...</td></tr>';
 
-    // Re-carrega clientes do localStorage para garantir que estejam atualizados
-    clients = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+    try {
+        const response = await fetch('http://localhost:5000/api/users', {
+            headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+        });
+        const data = await response.json();
 
+        if (response.ok) {
+            currentClients = data; // Armazena os clientes
+            tbody.innerHTML = ''; // Limpa a mensagem de carregamento
 
-    clients.forEach(client => {
-        const appointmentCount = appointments.filter(a => a.clientId === client.id).length;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td data-label="ID">${client.id}</td>
-            <td data-label="Nome">${client.name}</td>
-            <td data-label="Email">${client.email}</td>
-            <td data-label="Telefone">${client.phone}</td>
-            <td data-label="Agendamentos">${appointmentCount}</td>
-            <td data-label="Ações">
-                <div class="action-buttons">
-                    <button class="action-btn delete-btn" onclick="deleteClient(${client.id})" title="Excluir">
-                        <i class="fas fa-trash"></i> </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-function editClient(id) {
-    const client = clients.find(c => c.id === id);
-    if (!client) return;
-
-    document.getElementById('clientModalTitle').textContent = 'Editar Cliente';
-    document.getElementById('clientId').value = client.id;
-    document.getElementById('clientName').value = client.name;
-    document.getElementById('clientEmail').value = client.email;
-    document.getElementById('clientPhone').value = client.phone;
-
-    openModal('clientModal');
-}
-
-function deleteClient(id) {
-    if (confirm('Tem certeza que deseja excluir este cliente?')) {
-        clients = clients.filter(c => c.id !== id);
-        localStorage.setItem('registeredUsers', JSON.stringify(clients));
-        loadClients();
-        updateClientOptions();
-    }
-}
-
-function saveClient() {
-    const clientData = {
-        name: document.getElementById('clientName').value,
-        email: document.getElementById('clientEmail').value,
-        phone: document.getElementById('clientPhone').value
-    };
-
-    const id = document.getElementById('clientId').value;
-    
-    if (id) {
-        // Edit existing client
-        const index = clients.findIndex(c => c.id === parseInt(id));
-        if (index !== -1) {
-            clients[index] = { ...clientData, id: parseInt(id) };
+            currentClients.forEach(client => {
+                // Para contar agendamentos, precisa que currentAppointments esteja carregado
+                const appointmentCount = currentAppointments.filter(a => a.client._id === client._id).length;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td data-label="ID">${client._id}</td>
+                    <td data-label="Nome">${client.name}</td>
+                    <td data-label="Email">${client.email}</td>
+                    <td data-label="Telefone">${client.phone || 'N/A'}</td>
+                    <td data-label="Agendamentos">${appointmentCount}</td>
+                    <td data-label="Ações">
+                        <div class="action-buttons">
+                            <button class="action-btn delete-btn" onclick="deleteClient('${client._id}')" title="Excluir">
+                                <i class="fas fa-trash"></i> </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Erro ao carregar clientes: ${data.message || 'Desconhecido'}</td></tr>`;
         }
-    } else {
-        // Add new client
-        const newId = Math.max(...clients.map(c => c.id), 0) + 1;
-        clients.push({ ...clientData, id: newId });
+    } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Erro de conexão ao carregar clientes.</td></tr>`;
     }
-
-    localStorage.setItem('registeredUsers', JSON.stringify(clients));
-
-    closeModal('clientModal');
-    loadClients();
-    updateClientOptions();
-    document.getElementById('clientForm').reset();
 }
 
-// Update Options Functions
-function updateClientOptions() {
+// editClient e saveClient seriam implementados aqui se você adicionar um modal para cliente.
+// A função deleteClient já foi explicada e adaptada no Postman, agora a lógica no frontend:
+async function deleteClient(id) { // id agora é o _id do MongoDB
+    if (confirm('Tem certeza que deseja excluir este cliente? Isso também excluirá seus agendamentos e veículos!')) {
+        showLoading();
+        try {
+            const response = await fetch(`http://localhost:5000/api/users/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+            });
+            const data = await response.json();
+
+            hideLoading();
+            if (response.ok) {
+                showToast(data.message || 'Cliente excluído com sucesso!', 'success');
+                // Recarrega todos os dados, pois a exclusão de um cliente afeta agendamentos e veículos
+                await loadClients();
+                await loadAppointments();
+                await loadVehiclesFromBackend(); // Recarrega para ter a lista mais recente
+                updateClientOptions(); // Atualiza o select de clientes no agendamento
+                updateDashboard();
+            } else {
+                showToast(data.message || 'Erro ao excluir cliente.', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('Erro ao excluir cliente:', error);
+            showToast('Erro de conexão ao excluir cliente.', 'error');
+        }
+    }
+}
+
+
+// --- Update Options Functions (AGORA POPULAM DE currentClients E currentServices) ---
+async function updateClientOptions() {
     const select = document.getElementById('appointmentClient');
     select.innerHTML = '<option value="">Selecione um cliente</option>';
-    clients.forEach(client => {
+    
+    // Garante que 'currentClients' esteja populado
+    if (currentClients.length === 0) {
+        await loadClientsFromBackend(); // Carrega clientes se ainda não estiverem carregados
+    }
+
+    currentClients.forEach(client => {
         const option = document.createElement('option');
-        option.value = client.id;
+        option.value = client._id;
         option.textContent = client.name;
         select.appendChild(option);
     });
 }
 
-function updateServiceOptions() {
+async function updateServiceOptions() {
     const select = document.getElementById('appointmentService');
     select.innerHTML = '<option value="">Selecione um serviço</option>';
-    services.forEach(service => {
+
+    // Garante que 'currentServices' esteja populado
+    if (currentServices.length === 0) {
+        await loadServicesFromBackend();
+    }
+
+    currentServices.forEach(service => {
         const option = document.createElement('option');
-        option.value = service.id;
+        // Usar _id se você for migrar o serviceId no model de Appointment para ObjectId
+        // Por enquanto, mantenho service.id (número) para compatibilidade com o Appointments model
+        option.value = service._id; // Agora é service._id
         option.textContent = `${service.name} - ${formatCurrency(service.price)}`;
         select.appendChild(option);
     });
 }
 
-// Dashboard Functions
-function updateDashboard() {
-    // Re-carrega appointments, clients e services do localStorage para garantir que estejam atualizados
-    appointments = JSON.parse(localStorage.getItem('appointments')) || [];
-    clients = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-    services = JSON.parse(localStorage.getItem('services')) || [];
-    vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
+// --- Helper Functions to Fetch Data from Backend ---
+async function loadClientsFromBackend() {
+    try {
+        const response = await fetch('http://localhost:5000/api/users', {
+            headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+            currentClients = data;
+        } else {
+            console.error('Erro ao carregar clientes do backend:', data.message);
+        }
+    } catch (error) {
+        console.error('Erro de conexão ao carregar clientes do backend:', error);
+    }
+}
+
+async function loadServicesFromBackend() {
+    try {
+        const response = await fetch('http://localhost:5000/api/services'); // Esta rota é pública
+        const data = await response.json();
+        if (response.ok) {
+            currentServices = data;
+        } else {
+            console.error('Erro ao carregar serviços do backend:', data.message);
+        }
+    } catch (error) {
+        console.error('Erro de conexão ao carregar serviços do backend:', error);
+    }
+}
+
+async function loadVehiclesFromBackend() {
+    try {
+        // Como admin, queremos carregar todos os veículos para mapeamento nos agendamentos
+        const response = await fetch('http://localhost:5000/api/vehicles', {
+            headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+            currentVehicles = data;
+        } else {
+            console.error('Erro ao carregar veículos do backend:', data.message);
+        }
+    } catch (error) {
+        console.error('Erro de conexão ao carregar veículos do backend:', error);
+    }
+}
 
 
+// --- Dashboard Functions (AGORA INTERAGEM COM O BACKEND) ---
+async function updateDashboard() {
+    // Garante que os dados estejam carregados para o dashboard
+    await loadAppointments(); // Isso também carrega clients, services, vehicles através das dependências
+    
     const today = new Date().toISOString().split('T')[0];
-    const todayAppointments = appointments.filter(a => a.date === today);
+    const todayAppointments = currentAppointments.filter(a => a.date === today && a.status !== 'cancelled' && a.status !== 'completed');
     
     // Update stats
     document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = todayAppointments.length;
     
-    const thisMonth = new Date().toISOString().slice(0, 7);
-    const monthlyAppointments = appointments.filter(a => a.date.startsWith(thisMonth));
+    const thisMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const monthlyAppointments = currentAppointments.filter(a => a.date.startsWith(thisMonth));
     document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = monthlyAppointments.length;
     
     const monthlyRevenue = monthlyAppointments
@@ -443,66 +648,64 @@ function updateDashboard() {
     const dashboardAppointmentsTable = document.getElementById('dashboardAppointments');
     if (dashboardAppointmentsTable) {
         dashboardAppointmentsTable.innerHTML = '';
-        todayAppointments.forEach(appointment => {
-            const clientName = getClientName(appointment.clientId);
-            const serviceName = getServiceName(appointment.serviceId);
-            const vehicleInfo = appointment.vehicle ? getVehicleInfo(appointment.vehicle.id, appointment.vehicle.plate) : 'Veículo não encontrado';
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td data-label="Cliente">${clientName}</td>
-                <td data-label="Veículo">${vehicleInfo}</td>
-                <td data-label="Serviço">${serviceName}</td>
-                <td data-label="Data">${formatDate(appointment.date)}</td>
-                <td data-label="Horário">${appointment.time}</td>
-                <td data-label="Status">${getStatusBadge(appointment.status)}</td>
-            `;
-            dashboardAppointmentsTable.appendChild(row);
-        });
         if (todayAppointments.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="5" style="text-align: center; color: var(--dark-100);">Nenhum agendamento para hoje.</td>`;
+            row.innerHTML = `<td colspan="6" style="text-align: center; color: var(--dark-100);">Nenhum agendamento para hoje.</td>`;
             dashboardAppointmentsTable.appendChild(row);
+        } else {
+             todayAppointments.sort((a, b) => a.time.localeCompare(b.time)); // Ordenar por horário
+            todayAppointments.forEach(appointment => {
+                const clientName = getClientName(appointment.client._id);
+                const serviceName = getServiceName(appointment.serviceId);
+                const vehicleInfo = getVehicleInfo(appointment.vehicle._id);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td data-label="Cliente">${clientName}</td>
+                    <td data-label="Veículo">${vehicleInfo}</td>
+                    <td data-label="Serviço">${serviceName}</td>
+                    <td data-label="Data">${formatDate(appointment.date)}</td>
+                    <td data-label="Horário">${appointment.time}</td>
+                    <td data-label="Status">${getStatusBadge(appointment.status)}</td>
+                `;
+                dashboardAppointmentsTable.appendChild(row);
+            });
         }
     }
 }
 
-// Search Functions
+// --- Search Functions (manter, funcionam com os dados nas arrays globais) ---
 function setupSearch() {
-    document.getElementById('appointmentSearch').addEventListener('input', function(e) {
+    document.getElementById('appointmentSearch')?.addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('#appointmentsTable tr');
-        
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     });
 
-    document.getElementById('serviceSearch').addEventListener('input', function(e) {
+    document.getElementById('serviceSearch')?.addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();
         const cards = document.querySelectorAll('.service-card');
-        
         cards.forEach(card => {
             const text = card.textContent.toLowerCase();
             card.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     });
 
-    document.getElementById('clientSearch').addEventListener('input', function(e) {
+    document.getElementById('clientSearch')?.addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('#clientsTable tr');
-        
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     });
 
-    document.getElementById('statusFilter').addEventListener('change', function(e) {
+    document.getElementById('statusFilter')?.addEventListener('change', function(e) {
         const status = e.target.value;
         const rows = document.querySelectorAll('#appointmentsTable tr');
-        
         rows.forEach(row => {
             if (!status) {
                 row.style.display = '';
@@ -517,10 +720,9 @@ function setupSearch() {
         });
     });
 
-    document.getElementById('dashboardSearch').addEventListener('input', function(e) {
+    document.getElementById('dashboardSearch')?.addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('#dashboardAppointments tr');
-        
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(searchTerm) ? '' : 'none';
@@ -528,7 +730,22 @@ function setupSearch() {
     });
 }
 
-function init() {
+// --- Init Function ---
+async function init() { // Adicione 'async' aqui
+    // Adicione uma verificação de token aqui para proteger a página admin
+    if (!ADMIN_TOKEN) {
+        alert('Você precisa estar logado como administrador para acessar esta página.');
+        window.location.href = 'admlogin.html';
+        return; // Impede que o resto do init seja executado
+    }
+    document.getElementById('pageTitle').textContent = `Bem-vindo, ${ADMIN_NAME}!`; // Atualiza o título com o nome do admin
+
+    // Carregar dados iniciais para popular as listas antes de configurar event listeners
+    await loadClientsFromBackend();
+    await loadServicesFromBackend();
+    await loadVehiclesFromBackend();
+    await updateDashboard(); // Isso também chamará loadAppointments()
+
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
@@ -537,19 +754,19 @@ function init() {
         });
     });
 
-    document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('collapsed');
     });
 
-    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
         sidebar.classList.toggle('mobile-visible');
         overlay.classList.toggle('active');
     });
 
-    document.getElementById('overlay').addEventListener('click', function() {
+    document.getElementById('overlay')?.addEventListener('click', function() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.remove('mobile-visible');
         this.classList.remove('active');
@@ -562,52 +779,43 @@ function init() {
         });
     });
 
-    document.getElementById('saveAppointmentBtn').addEventListener('click', saveAppointment);
-    document.getElementById('saveServiceBtn').addEventListener('click', saveService);
-    document.getElementById('saveClientBtn').addEventListener('click', saveClient);
+    document.getElementById('saveAppointmentBtn')?.addEventListener('click', saveAppointment);
+    document.getElementById('saveServiceBtn')?.addEventListener('click', saveService);
 
-    document.getElementById('newAppointmentBtn').addEventListener('click', function() {
+    document.getElementById('newAppointmentBtn')?.addEventListener('click', function() {
         document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
         document.getElementById('appointmentForm').reset();
         document.getElementById('appointmentId').value = '';
+        updateClientOptions(); // Popula clientes antes de abrir o modal
+        updateServiceOptions(); // Popula serviços antes de abrir o modal
         openModal('appointmentModal');
     });
 
-    document.getElementById('addAppointmentBtn').addEventListener('click', function() {
+    document.getElementById('addAppointmentBtn')?.addEventListener('click', function() {
         document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
         document.getElementById('appointmentForm').reset();
         document.getElementById('appointmentId').value = '';
+        updateClientOptions();
+        updateServiceOptions();
         openModal('appointmentModal');
     });
 
-    document.getElementById('addServiceBtn').addEventListener('click', function() {
+    document.getElementById('addServiceBtn')?.addEventListener('click', function() {
         document.getElementById('serviceModalTitle').textContent = 'Novo Serviço';
         document.getElementById('serviceForm').reset();
         document.getElementById('serviceId').value = '';
         openModal('serviceModal');
     });
 
-    document.getElementById('addClientBtn').addEventListener('click', function() {
-        document.getElementById('clientModalTitle').textContent = 'Novo Cliente';
-        document.getElementById('clientForm').reset();
-        document.getElementById('clientId').value = '';
-        openModal('clientModal');
-    });
-
-    document.getElementById('appointmentService').addEventListener('change', function() {
-        const serviceId = parseInt(this.value);
-        const service = services.find(s => s.id === serviceId);
+    document.getElementById('appointmentService')?.addEventListener('change', function() {
+        const serviceId = this.value; // Pega o _id como string
+        const service = currentServices.find(s => s._id === serviceId); // Busca pelo _id
         if (service) {
             document.getElementById('appointmentValue').value = service.price;
         }
     });
 
     setupSearch();
-
-    updateClientOptions();
-    updateServiceOptions();
-    updateDashboard();
-    loadAppointments();
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -617,21 +825,21 @@ function init() {
         }
     });
 
-    document.addEventListener('resize', function() {
-        if (window.innerWidth > 992) {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            sidebar.classList.remove('mobile-visible');
-            overlay.classList.remove('active');
-        }
-    });
-
+    // Logout button handler
     const logoutButton = document.getElementById('logoutBtnSidebar');
     if (logoutButton) {
         logoutButton.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Botão Desconectar clicado. Redirecionando...');
-            window.location.href = 'admlogin.html';
+            console.log('Botão Desconectar clicado. Limpando token e redirecionando...');
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('adminToken'); // Limpa o token do localStorage
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminId');
+            showLoading();
+            setTimeout(() => {
+                window.location.href = 'admlogin.html';
+            }, 1500);
         });
     } else {
         console.warn("Elemento 'logoutBtnSidebar' não encontrado. Verifique o ID no HTML.");
