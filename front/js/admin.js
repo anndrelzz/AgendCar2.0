@@ -12,7 +12,10 @@ let currentServices = [];
 let currentClients = [];
 let currentVehicles = [];
 
+
 // Obter o token e dados do admin do localStorage
+// PARA TESTES LOCAIS, VOCÊ PODE TEMPORARIAMENTE HARDCODE O ADMIN_TOKEN AQUI SE NÃO QUISER LOGAR VIA ADMLOGIN.HTML A CADA VEZ
+// Ex: const ADMIN_TOKEN = 'SEU_TOKEN_ADMIN_COPIADO_DO_POSTMAN';
 const ADMIN_TOKEN = localStorage.getItem('adminToken') || null;
 const ADMIN_ID = localStorage.getItem('adminId') || null; // Novo: ID do admin
 const ADMIN_NAME = localStorage.getItem('adminName') || 'Administrador';
@@ -175,7 +178,7 @@ async function loadAppointments() {
         await loadVehiclesFromBackend(); // Carrega todos os veículos (admin view)
         await loadServicesFromBackend();
 
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/appointments', {
+        const response = await fetch('http://localhost:5000/api/appointments', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -247,7 +250,7 @@ async function deleteAppointment(id) {
     if (confirm('Tem certeza que deseja excluir este agendamento?')) {
         showLoading();
         try {
-            const response = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/appointments/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
             });
@@ -292,10 +295,10 @@ async function saveAppointment() {
 
         if (id) {
             method = 'PUT';
-            url = `https://agendcar20-production.up.railway.app//api/appointments/${id}`;
+            url = `http://localhost:5000/api/appointments/${id}`;
         } else {
             method = 'POST';
-            url = 'https://agendcar20-production.up.railway.app//api/appointments';
+            url = 'http://localhost:5000/api/appointments';
         }
 
         response = await fetch(url, {
@@ -332,7 +335,7 @@ async function loadServices() {
     container.innerHTML = '<div style="text-align: center; width: 100%;">Carregando serviços...</div>';
 
     try {
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/services');
+        const response = await fetch('http://localhost:5000/api/services');
         const data = await response.json();
 
         if (response.ok) {
@@ -387,7 +390,7 @@ async function deleteService(id) {
     if (confirm('Tem certeza que deseja excluir este serviço?')) {
         showLoading();
         try {
-            const response = await fetch(`https://agendcar20-production.up.railway.app//api/services/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/services/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
             });
@@ -428,10 +431,10 @@ async function saveService() {
 
         if (id) {
             method = 'PUT';
-            url = `https://agendcar20-production.up.railway.app//api/services/${id}`;
+            url = `http://localhost:5000/api/services/${id}`;
         } else {
             method = 'POST';
-            url = 'https://agendcar20-production.up.railway.app//api/services';
+            url = 'http://localhost:5000/api/services';
         }
 
         response = await fetch(url, {
@@ -468,7 +471,7 @@ async function loadClients() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando clientes...</td></tr>';
 
     try {
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/users', {
+        const response = await fetch('http://localhost:5000/api/users', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -511,7 +514,7 @@ async function deleteClient(id) { // id agora é o _id do MongoDB
     if (confirm('Tem certeza que deseja excluir este cliente? Isso também excluirá seus agendamentos e veículos!')) {
         showLoading();
         try {
-            const response = await fetch(`https://agendcar20-production.up.railway.app//api/users/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/users/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
             });
@@ -578,7 +581,7 @@ async function updateServiceOptions() {
 // --- Helper Functions to Fetch Data from Backend ---
 async function loadClientsFromBackend() {
     try {
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/users', {
+        const response = await fetch('http://localhost:5000/api/users', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -594,7 +597,7 @@ async function loadClientsFromBackend() {
 
 async function loadServicesFromBackend() {
     try {
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/services'); // Esta rota é pública
+        const response = await fetch('http://localhost:5000/api/services'); // Esta rota é pública
         const data = await response.json();
         if (response.ok) {
             currentServices = data;
@@ -609,7 +612,7 @@ async function loadServicesFromBackend() {
 async function loadVehiclesFromBackend() {
     try {
         // Como admin, queremos carregar todos os veículos para mapeamento nos agendamentos
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/vehicles', {
+        const response = await fetch('http://localhost:5000/api/vehicles', {
             headers: { 'Authorization': `Bearer ${ADMIN_TOKEN}` }
         });
         const data = await response.json();
@@ -635,7 +638,7 @@ async function updateDashboard() {
     // Update stats
     document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = todayAppointments.length;
     
-    const thisMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const thisMonth = new Date().toISOString().slice(0, 7); // WPARAM-MM
     const monthlyAppointments = currentAppointments.filter(a => a.date.startsWith(thisMonth));
     document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = monthlyAppointments.length;
     
@@ -732,118 +735,118 @@ function setupSearch() {
 
 // --- Init Function ---
 async function init() { // Adicione 'async' aqui
-    // Adicione uma verificação de token aqui para proteger a página admin
-    if (!ADMIN_TOKEN) {
-        alert('Você precisa estar logado como administrador para acessar esta página.');
-        window.location.href = 'admlogin.html';
-        return; // Impede que o resto do init seja executado
-    }
-    document.getElementById('pageTitle').textContent = `Bem-vindo, ${ADMIN_NAME}!`; // Atualiza o título com o nome do admin
+    // Adicione uma verificação de token aqui para proteger a página admin
+    if (!ADMIN_TOKEN) {
+        alert('Você precisa estar logado como administrador para acessar esta página.');
+        window.location.href = 'admlogin.html';
+        return; // Impede que o resto do init seja executado
+    }
+    document.getElementById('pageTitle').textContent = `Bem-vindo, ${ADMIN_NAME}!`; // Atualiza o título com o nome do admin
 
-    // Carregar dados iniciais para popular as listas antes de configurar event listeners
-    await loadClientsFromBackend();
-    await loadServicesFromBackend();
-    await loadVehiclesFromBackend();
-    await updateDashboard(); // Isso também chamará loadAppointments()
+    // Carregar dados iniciais para popular as listas antes de configurar event listeners
+    await loadClientsFromBackend();
+    await loadServicesFromBackend();
+    await loadVehiclesFromBackend();
+    await updateDashboard(); // Isso também chamará loadAppointments()
 
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const section = this.getAttribute('data-section');
-            showSection(section);
-        });
-    });
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.getAttribute('data-section');
+            showSection(section);
+        });
+    });
 
-    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('collapsed');
-    });
+    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+    });
 
-    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        sidebar.classList.toggle('mobile-visible');
-        overlay.classList.toggle('active');
-    });
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.toggle('mobile-visible');
+        overlay.classList.toggle('active');
+    });
 
-    document.getElementById('overlay')?.addEventListener('click', function() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.remove('mobile-visible');
-        this.classList.remove('active');
-    });
+    document.getElementById('overlay')?.addEventListener('click', function() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('mobile-visible');
+        this.classList.remove('active');
+    });
 
-    document.querySelectorAll('.modal-close, [data-modal]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modalId = this.getAttribute('data-modal') || this.closest('.modal').id;
-            closeModal(modalId);
-        });
-    });
+    document.querySelectorAll('.modal-close, [data-modal]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modalId = this.getAttribute('data-modal') || this.closest('.modal').id;
+            closeModal(modalId);
+        });
+    });
 
-    document.getElementById('saveAppointmentBtn')?.addEventListener('click', saveAppointment);
-    document.getElementById('saveServiceBtn')?.addEventListener('click', saveService);
+    document.getElementById('saveAppointmentBtn')?.addEventListener('click', saveAppointment);
+    document.getElementById('saveServiceBtn')?.addEventListener('click', saveService);
 
-    document.getElementById('newAppointmentBtn')?.addEventListener('click', function() {
-        document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
-        document.getElementById('appointmentForm').reset();
-        document.getElementById('appointmentId').value = '';
-        updateClientOptions(); // Popula clientes antes de abrir o modal
-        updateServiceOptions(); // Popula serviços antes de abrir o modal
-        openModal('appointmentModal');
-    });
+    document.getElementById('newAppointmentBtn')?.addEventListener('click', function() {
+        document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
+        document.getElementById('appointmentForm').reset();
+        document.getElementById('appointmentId').value = '';
+        updateClientOptions(); // Popula clientes antes de abrir o modal
+        updateServiceOptions(); // Popula serviços antes de abrir o modal
+        openModal('appointmentModal');
+    });
 
-    document.getElementById('addAppointmentBtn')?.addEventListener('click', function() {
-        document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
-        document.getElementById('appointmentForm').reset();
-        document.getElementById('appointmentId').value = '';
-        updateClientOptions();
-        updateServiceOptions();
-        openModal('appointmentModal');
-    });
+    document.getElementById('addAppointmentBtn')?.addEventListener('click', function() {
+        document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
+        document.getElementById('appointmentForm').reset();
+        document.getElementById('appointmentId').value = '';
+        updateClientOptions();
+        updateServiceOptions();
+        openModal('appointmentModal');
+    });
 
-    document.getElementById('addServiceBtn')?.addEventListener('click', function() {
-        document.getElementById('serviceModalTitle').textContent = 'Novo Serviço';
-        document.getElementById('serviceForm').reset();
-        document.getElementById('serviceId').value = '';
-        openModal('serviceModal');
-    });
+    document.getElementById('addServiceBtn')?.addEventListener('click', function() {
+        document.getElementById('serviceModalTitle').textContent = 'Novo Serviço';
+        document.getElementById('serviceForm').reset();
+        document.getElementById('serviceId').value = '';
+        openModal('serviceModal');
+    });
 
-    document.getElementById('appointmentService')?.addEventListener('change', function() {
-        const serviceId = this.value; // Pega o _id como string
-        const service = currentServices.find(s => s._id === serviceId); // Busca pelo _id
-        if (service) {
-            document.getElementById('appointmentValue').value = service.price;
-        }
-    });
+    document.getElementById('appointmentService')?.addEventListener('change', function() {
+        const serviceId = this.value; // Pega o _id como string
+        const service = currentServices.find(s => s._id === serviceId); // Busca pelo _id
+        if (service) {
+            document.getElementById('appointmentValue').value = service.price;
+        }
+    });
 
-    setupSearch();
+    setupSearch();
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal.active').forEach(modal => {
-                closeModal(modal.id);
-            });
-        }
-    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.active').forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
 
-    // Logout button handler
-    const logoutButton = document.getElementById('logoutBtnSidebar');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Botão Desconectar clicado. Limpando token e redirecionando...');
-            localStorage.removeItem('adminLoggedIn');
-            localStorage.removeItem('adminToken'); // Limpa o token do localStorage
-            localStorage.removeItem('adminName');
-            localStorage.removeItem('adminEmail');
-            localStorage.removeItem('adminId');
-            showLoading();
-            setTimeout(() => {
-                window.location.href = 'admlogin.html';
-            }, 1500);
-        });
-    } else {
-        console.warn("Elemento 'logoutBtnSidebar' não encontrado. Verifique o ID no HTML.");
-    }
+    // Logout button handler
+    const logoutButton = document.getElementById('logoutBtnSidebar');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Botão Desconectar clicado. Limpando token e redirecionando...');
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('adminToken'); // Limpa o token do localStorage
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminId');
+            showLoading();
+            setTimeout(() => {
+                window.location.href = 'admlogin.html';
+            }, 1500);
+        });
+    } else {
+        console.warn("Elemento 'logoutBtnSidebar' não encontrado. Verifique o ID no HTML.");
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);

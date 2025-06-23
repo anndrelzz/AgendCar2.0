@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
-            const response = await fetch('https://agendcar20-production.up.railway.app//api/auth/register', { // URL DO BACKEND
+            const response = await fetch('http://localhost:5000/api/auth/register', { // URL DO BACKEND ATUALIZADA PARA LOCALHOST
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoading();
 
         try {
-            const response = await fetch('https://agendcar20-production.up.railway.app//api/auth/login', { // URL DO BACKEND
+            const response = await fetch('http://localhost:5000/api/auth/login', { // URL DO BACKEND ATUALIZADA PARA LOCALHOST
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -193,12 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginErrorMessageDiv.classList.add('d-none');
 
                 setTimeout(() => {
-                    window.location.href = "index.html";
+                    window.location.href = "index.html"; // REDIRECIONADO PARA index.html
                 }, 1500);
 
             } else {
                 loginErrorMessageDiv.textContent = data.message || 'E-mail ou senha inválidos.';
-                loginErrorMessageDiv.classList.remove('d-none');
+                loginErrorMessageDiv.classList.remove('d-d-none');
                 loginErrorMessageDiv.classList.remove('success-message');
                 loginErrorMessageDiv.classList.add('error-message');
                 showToast(data.message || 'Erro no login.', 'error');
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginErrorMessageDiv.textContent = 'Erro de conexão. Tente novamente mais tarde.';
             loginErrorMessageDiv.classList.remove('d-none');
             loginErrorMessageDiv.classList.remove('success-message');
-            loginErrorMessageDiv.classList.add('error-message');
+            loginErrorMessageDiv.classList.add('error-error');
             showToast('Erro de conexão.', 'error');
         }
     }
@@ -227,8 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnsignup.addEventListener("click", function () {
         body.className = "sign-up-js"
-        loginErrorMessageDiv.classList.add('d-none');
-        registerErrorMessageDiv.classList.add('d-none');
+        loginErrorMessageDiv.classList.add('d-d-none');
+        registerErrorMessageDiv.classList.add('d-d-none');
         registerForm.reset();
     });
 

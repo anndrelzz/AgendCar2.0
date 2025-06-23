@@ -24,7 +24,7 @@ const brazilianCarBrands = [
 ];
 
 // Services data - AGORA VAI CARREGAR DO BACKEND (no init)
-// Remova a inicialização com dados fixos aqui. A função loadServicesFromBackend() vai preenchê-la.
+// Remova a inicialização com dados fixos aqui. A função loadServicesFromBackend() vai preencherá.
 let services = [];
 
 // Time slots (manter localmente, é estático)
@@ -141,7 +141,7 @@ async function loadInitialData() {
 // NOVO: Função para carregar serviços do backend
 async function loadServicesFromBackend() {
     try {
-        const response = await fetch('https://agendcar20-production.up.railway.app/0/api/services');
+        const response = await fetch('http://localhost:5000/api/services');
         const data = await response.json();
         if (response.ok) {
             services = data; // Preenche a variável global 'services'
@@ -251,7 +251,7 @@ async function openProfileEditModal() {
     // Tenta buscar os dados mais recentes do usuário logado do backend
     showLoading();
     try {
-        const response = await fetch(`https://agendcar20-production.up.railway.app//api/users/${currentUserId}`, {
+        const response = await fetch(`http://localhost:5000/api/users/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -304,7 +304,7 @@ async function saveProfile(e) {
     showLoading();
 
     try {
-        const response = await fetch(`https://agendcar20-production.up.railway.app//api/users/${userId}`, {
+        const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -505,7 +505,6 @@ function populateBrandSelect() {
 // FUNÇÃO ATUALIZADA: saveVehicle
 async function saveVehicle() {
     if (!checkUserLogin() || !currentUserId) {
-        showToast('Você precisa estar logado para adicionar um veículo.', 'error');
         redirectToLogin();
         return;
     }
@@ -518,7 +517,7 @@ async function saveVehicle() {
     const vehicleIdToEdit = document.getElementById('vehicleIdToEdit')?.value; // _id do MongoDB
 
     if (!plate || !brand || !model || !type || !color) {
-        showToast('Por favor, preencha todos os campos do veículo para salvar.', 'error');
+        showToast('Por favor, preencha todos os campos do veículo.', 'error');
         return;
     }
 
@@ -544,10 +543,10 @@ async function saveVehicle() {
 
         if (vehicleIdToEdit) {
             method = 'PUT';
-            url = `https://agendcar20-production.up.railway.app//api/vehicles/${vehicleIdToEdit}`;
+            url = `http://localhost:5000/api/vehicles/${vehicleIdToEdit}`;
         } else {
             method = 'POST';
-            url = 'https://agendcar20-production.up.railway.app//api/vehicles';
+            url = 'http://localhost:5000/api/vehicles';
         }
 
         response = await fetch(url, {
@@ -723,7 +722,7 @@ async function handleBookingSubmit(e) {
     };
 
     try {
-        const response = await fetch('https://agendcar20-production.up.railway.app//api/appointments', {
+        const response = await fetch('http://localhost:5000/api/appointments', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -772,7 +771,7 @@ async function loadUserData() {
     showLoading();
     try {
         // Carregar veículos do backend para o usuário logado
-        const vehiclesResponse = await fetch(`https://agendcar20-production.up.railway.app//api/vehicles/user/${currentUserId}`, {
+        const vehiclesResponse = await fetch(`http://localhost:5000/api/vehicles/user/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -807,7 +806,7 @@ async function loadUserData() {
         }
 
         // Carregar agendamentos do backend para o usuário logado
-        const appointmentsResponse = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/user/${currentUserId}`, {
+        const appointmentsResponse = await fetch(`http://localhost:5000/api/appointments/user/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -869,7 +868,7 @@ async function cancelAppointment(appointmentId) {
     if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
         showLoading();
         try {
-            const response = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/${appointmentId}`, {
+            const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -938,7 +937,7 @@ async function editVehicle(vehicleId) { // vehicleId agora é o _id do MongoDB
 
 // FUNÇÃO ATUALIZADA: deleteVehicle
 async function deleteVehicle(vehicleId) { // vehicleId agora é o _id do MongoDB
-    if (!checkUserLogin() || !currentUserId) {
+    if (!checkUserLogin()) {
         redirectToLogin();
         return;
     }
@@ -953,7 +952,7 @@ async function deleteVehicle(vehicleId) { // vehicleId agora é o _id do MongoDB
     if (confirm('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.')) {
         showLoading();
         try {
-            const response = await fetch(`https://agendcar20-production.up.railway.app//api/vehicles/${vehicleId}`, {
+            const response = await fetch(`http://localhost:5000/api/vehicles/${vehicleId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${currentUserToken}`
@@ -1001,7 +1000,7 @@ async function loadHistoryData() {
     showLoading();
     try {
         // Carrega TODOS os agendamentos do usuário (incluindo cancelados/completos)
-        const response = await fetch(`https://agendcar20-production.up.railway.app//api/appointments/user/${currentUserId}`, {
+        const response = await fetch(`http://localhost:5000/api/appointments/user/${currentUserId}`, {
             headers: {
                 'Authorization': `Bearer ${currentUserToken}`
             }
@@ -1051,8 +1050,8 @@ async function loadHistoryData() {
                 }).join('');
             }
         } else {
-                showToast(currentUserAppointments.message || 'Erro ao carregar histórico.', 'error');
-                historyList.innerHTML = '<p class="no-data">Erro ao carregar histórico.</p>';
+            showToast(currentUserAppointments.message || 'Erro ao carregar histórico.', 'error');
+            historyList.innerHTML = '<p class="no-data">Erro ao carregar histórico.</p>';
         }
     } catch (error) {
         hideLoading();
